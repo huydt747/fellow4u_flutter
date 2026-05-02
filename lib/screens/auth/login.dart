@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/auth_header.dart';
+import '../../core/services/api_service.dart';
 import 'sign_up_step1.dart';
 import '../main_screen.dart';
 
@@ -31,21 +32,14 @@ class _SignInScreenState extends State<SignInScreen> {
 
     try {
       // 1. Call API
-      /*
-      final response = await ApiService.post("login", {
-        "email": email,
+      final response = await ApiService.post("auth/login", {
+        "username": email,
         "password": password,
       });
 
-      // 2. Save to SQLite
-      await DbService.insertUser({
-        "id": response["user"]["id"].toString(),
-        "email": response["user"]["email"],
-        "name": response["user"]["name"],
-        "token": response["token"],
-      });
-      */
-
+      // 2. Save session (Placeholder for now)
+      print("Login success: ${response['token']}");
+      
       // 3. Navigate to Main Screen
       if (mounted) {
         Navigator.pushReplacement(

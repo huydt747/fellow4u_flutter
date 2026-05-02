@@ -1,10 +1,74 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/auth_header.dart';
+import '../../core/services/api_service.dart';
 import 'sign_up_step3.dart';
 
-class SignUpStep2 extends StatelessWidget {
-  const SignUpStep2({super.key});
+class SignUpStep2 extends StatefulWidget {
+  final int userId;
+  const SignUpStep2({super.key, required this.userId});
+
+  @override
+  State<SignUpStep2> createState() => _SignUpStep2State();
+}
+
+class _SignUpStep2State extends State<SignUpStep2> {
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController languagesController = TextEditingController();
+  final TextEditingController introController = TextEditingController();
+  bool isLoading = false;
+
+  void _nextStep() async {
+    setState(() => isLoading = true);
+
+    try {
+      await ApiService.post("auth/update", {
+        "userId": widget.userId,
+        "address": addressController.text.trim(),
+        "city": cityController.text.trim(),
+        "country": countryController.text.trim(),
+        "phone": phoneController.text.trim(),
+        "languages": languagesController.text.trim(),
+        "introduction": introController.text.trim(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Background information updated!")),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SignUpStep3(userId: widget.userId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Update failed: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    addressController.dispose();
+    cityController.dispose();
+    countryController.dispose();
+    phoneController.dispose();
+    languagesController.dispose();
+    introController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +79,7 @@ class SignUpStep2 extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const AuthHeader(
-              waveTitle: "Welcome, Tuan!",
+              waveTitle: "Welcome!",
               showLogo: false,
             ),
             const Padding(
@@ -37,7 +101,6 @@ class SignUpStep2 extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Profile Icon aligned to left as requested
                   Container(
                     width: 80,
                     height: 80,
@@ -56,13 +119,13 @@ class SignUpStep2 extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  _buildTextField("Address", "Address"),
+                  _buildTextField("Address", "Address", controller: addressController),
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      Expanded(child: _buildTextField("City", "City")),
+                      Expanded(child: _buildTextField("City", "City", controller: cityController)),
                       const SizedBox(width: 20),
-                      Expanded(child: _buildTextField("Country", "Country")),
+                      Expanded(child: _buildTextField("Country", "Country", controller: countryController)),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -75,12 +138,14 @@ class SignUpStep2 extends StatelessWidget {
                   _buildTextField(
                     "Languages",
                     "Languages you can use to guide",
+                    controller: languagesController,
                   ),
                   const SizedBox(height: 20),
                   _buildTextField(
                     "Introduction",
                     "Short introduction about yourself",
                     maxLines: 5,
+                    controller: introController,
                   ),
                   const SizedBox(height: 20),
                   _buildUploadBox(
@@ -92,14 +157,7 @@ class SignUpStep2 extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignUpStep3(),
-                          ),
-                        );
-                      },
+                      onPressed: isLoading ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -109,14 +167,16 @@ class SignUpStep2 extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        "NEXT",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
+                      child: isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "NEXT",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -188,12 +248,13 @@ class SignUpStep2 extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {int maxLines = 1}) {
+  Widget _buildTextField(String label, String hint, {int maxLines = 1, TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         TextField(
+          controller: controller,
           maxLines: maxLines,
           decoration: InputDecoration(
             hintText: hint,
@@ -225,6 +286,7 @@ class SignUpStep2 extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
+                controller: phoneController,
                 decoration: const InputDecoration(
                   hintText: "Phone number",
                   hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
@@ -243,11 +305,7 @@ class SignUpStep2 extends StatelessWidget {
     );
   }
 
-  Widget _buildUploadBox(
-    String label, {
-    bool isOptional = false,
-    bool isVideo = false,
-  }) {
+  Widget _buildUploadBox(String label, {bool isOptional = false, bool isVideo = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,10 +313,7 @@ class SignUpStep2 extends StatelessWidget {
           children: [
             Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
             if (isOptional)
-              const Text(
-                "  (Optional)",
-                style: TextStyle(color: Colors.blue, fontSize: 12),
-              ),
+              const Text("  (Optional)", style: TextStyle(color: Colors.blue, fontSize: 12)),
           ],
         ),
         const SizedBox(height: 10),
@@ -266,25 +321,16 @@ class SignUpStep2 extends StatelessWidget {
           width: double.infinity,
           height: 60,
           decoration: BoxDecoration(
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.5),
-              style: BorderStyle.solid,
-            ),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
             borderRadius: BorderRadius.circular(8),
             color: Colors.white,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                isVideo ? Icons.videocam_outlined : Icons.camera_alt_outlined,
-                color: AppColors.primary,
-              ),
+              Icon(isVideo ? Icons.videocam_outlined : Icons.camera_alt_outlined, color: AppColors.primary),
               const SizedBox(width: 10),
-              Text(
-                isVideo ? "Upload Video" : "Upload Photo",
-                style: const TextStyle(color: AppColors.primary),
-              ),
+              Text(isVideo ? "Upload Video" : "Upload Photo", style: const TextStyle(color: AppColors.primary)),
             ],
           ),
         ),

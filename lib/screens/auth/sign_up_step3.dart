@@ -1,10 +1,90 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/auth_header.dart';
+import '../../core/services/api_service.dart';
 import '../main_screen.dart';
 
-class SignUpStep3 extends StatelessWidget {
-  const SignUpStep3({super.key});
+class SignUpStep3 extends StatefulWidget {
+  final int userId;
+  const SignUpStep3({super.key, required this.userId});
+
+  @override
+  State<SignUpStep3> createState() => _SignUpStep3State();
+}
+
+class _SignUpStep3State extends State<SignUpStep3> {
+  final TextEditingController fee1To3Controller = TextEditingController();
+  final TextEditingController fee4To6Controller = TextEditingController();
+  final TextEditingController fee7To9Controller = TextEditingController();
+  final TextEditingController fee10To14Controller = TextEditingController();
+  
+  final TextEditingController fromTimeController = TextEditingController(text: "09:00 AM");
+  final TextEditingController toTimeController = TextEditingController(text: "05:00 PM");
+  
+  String selectedDay = "Monday";
+  bool isLoading = false;
+
+  void _finishSignUp() async {
+    setState(() => isLoading = true);
+
+    try {
+      // 1. Prepare Fees
+      final List<Map<String, dynamic>> fees = [
+        {"min": 1, "max": 3, "price": double.tryParse(fee1To3Controller.text) ?? 0.0},
+        {"min": 4, "max": 6, "price": double.tryParse(fee4To6Controller.text) ?? 0.0},
+        {"min": 7, "max": 9, "price": double.tryParse(fee7To9Controller.text) ?? 0.0},
+        {"min": 10, "max": 14, "price": double.tryParse(fee10To14Controller.text) ?? 0.0},
+      ];
+
+      // 2. Prepare Availability
+      final List<Map<String, dynamic>> availability = [
+        {
+          "day": selectedDay,
+          "from": fromTimeController.text,
+          "to": toTimeController.text,
+        }
+      ];
+
+      // 3. Call API
+      await ApiService.post("auth/update", {
+        "userId": widget.userId,
+        "fees": fees,
+        "availability": availability,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profile completed! Welcome to Fellow4U.")),
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Finish failed: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    fee1To3Controller.dispose();
+    fee4To6Controller.dispose();
+    fee7To9Controller.dispose();
+    fee10To14Controller.dispose();
+    fromTimeController.dispose();
+    toTimeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +95,7 @@ class SignUpStep3 extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const AuthHeader(
-              waveTitle: "Welcome, Tuan!",
+              waveTitle: "Welcome!",
               showLogo: false,
             ),
             const Padding(
@@ -30,14 +110,13 @@ class SignUpStep3 extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
-            _buildProgressIndicator(2), // Step 2 out of 2
+            _buildProgressIndicator(2),
             const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Profile Icon aligned to left as requested for consistency
                   Container(
                     width: 80,
                     height: 80,
@@ -56,72 +135,30 @@ class SignUpStep3 extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  const Text(
-                    "Set Fee",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  const Text("Set Fee", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 5),
-                  const Text(
-                    "The price unit is US \$/hour",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
+                  const Text("The price unit is US \$/hour", style: TextStyle(color: Colors.grey, fontSize: 13)),
                   const SizedBox(height: 20),
                   _buildFeeTable(),
                   const SizedBox(height: 35),
-                  const Text(
-                    "Set Available Time",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  const Text("Set Available Time", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 5),
-                  const Text(
-                    "The time you can work on Fellow4U as a Guide",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
+                  const Text("The time you can work on Fellow4U as a Guide", style: TextStyle(color: Colors.grey, fontSize: 13)),
                   const SizedBox(height: 20),
                   _buildDaySelector(),
                   const SizedBox(height: 25),
                   Row(
                     children: [
-                      Expanded(child: _buildTimePicker("From", "09:00 AM")),
+                      Expanded(child: _buildTimePicker("From", fromTimeController)),
                       const SizedBox(width: 20),
-                      Expanded(child: _buildTimePicker("To", "05:00 PM")),
+                      Expanded(child: _buildTimePicker("To", toTimeController)),
                     ],
-                  ),
-                  const SizedBox(height: 15),
-                  TextButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add, color: AppColors.primary, size: 20),
-                    label: const Text(
-                      "Add Another Time",
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      alignment: Alignment.centerLeft,
-                    ),
                   ),
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => const MainScreen()),
-                          (route) => false,
-                        );
-                      },
+                      onPressed: isLoading ? null : _finishSignUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -131,14 +168,16 @@ class SignUpStep3 extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        "FINISH",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
+                      child: isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "FINISH",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -160,12 +199,7 @@ class SignUpStep3 extends StatelessWidget {
       child: Row(
         children: [
           _buildStepCircle("Background Info", isStep1Done),
-          Expanded(
-            child: Container(
-              height: 1,
-              color: isStep2Done ? AppColors.primary : Colors.grey[300],
-            ),
-          ),
+          Expanded(child: Container(height: 1, color: isStep2Done ? AppColors.primary : Colors.grey[300])),
           _buildStepCircle("Fee & Time", isStep2Done),
         ],
       ),
@@ -181,57 +215,39 @@ class SignUpStep3 extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white,
-            border: Border.all(
-              color: isDone ? AppColors.primary : Colors.grey[300]!,
-              width: 1.5,
-            ),
+            border: Border.all(color: isDone ? AppColors.primary : Colors.grey[300]!, width: 1.5),
           ),
           child: Center(
             child: Container(
               width: 10,
               height: 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDone ? AppColors.primary : Colors.grey[300]!,
-              ),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: isDone ? AppColors.primary : Colors.grey[300]!),
             ),
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isDone ? AppColors.primary : Colors.grey,
-            fontWeight: isDone ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: isDone ? AppColors.primary : Colors.grey, fontWeight: isDone ? FontWeight.bold : FontWeight.normal)),
       ],
     );
   }
 
   Widget _buildFeeTable() {
     return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[200]!),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey[200]!), borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
-          _buildFeeRow("1 - 3 Travelers", isFirst: true),
-          _buildFeeRow("4 - 6 Travelers"),
-          _buildFeeRow("7 - 9 Travelers"),
-          _buildFeeRow("10 - 14 Travelers", isLast: true),
+          _buildFeeRow("1 - 3 Travelers", fee1To3Controller),
+          _buildFeeRow("4 - 6 Travelers", fee4To6Controller),
+          _buildFeeRow("7 - 9 Travelers", fee7To9Controller),
+          _buildFeeRow("10 - 14 Travelers", fee10To14Controller, isLast: true),
         ],
       ),
     );
   }
 
-  Widget _buildFeeRow(String label, {bool isFirst = false, bool isLast = false}) {
+  Widget _buildFeeRow(String label, TextEditingController controller, {bool isLast = false}) {
     return Container(
-      decoration: BoxDecoration(
-        border: Border(bottom: isLast ? BorderSide.none : BorderSide(color: Colors.grey[200]!)),
-      ),
+      decoration: BoxDecoration(border: Border(bottom: isLast ? BorderSide.none : BorderSide(color: Colors.grey[200]!))),
       child: Row(
         children: [
           Expanded(
@@ -246,12 +262,10 @@ class SignUpStep3 extends StatelessWidget {
             flex: 1,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: "Input the fee",
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
-                  border: InputBorder.none,
-                ),
+              child: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(hintText: "Input the fee", hintStyle: TextStyle(color: Colors.grey, fontSize: 12), border: InputBorder.none),
               ),
             ),
           ),
@@ -266,20 +280,19 @@ class SignUpStep3 extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: days.map((day) {
-          bool isSelected = day == "Monday";
+          bool isSelected = selectedDay == day;
           return Container(
             margin: const EdgeInsets.only(right: 10),
             child: ChoiceChip(
               label: Text(day),
               selected: isSelected,
-              onSelected: (val) {},
+              onSelected: (val) {
+                if (val) setState(() => selectedDay = day);
+              },
               selectedColor: AppColors.primary,
               labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.grey, fontSize: 12),
               backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey[200]!),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey[200]!)),
             ),
           );
         }).toList(),
@@ -287,7 +300,7 @@ class SignUpStep3 extends StatelessWidget {
     );
   }
 
-  Widget _buildTimePicker(String label, String hint) {
+  Widget _buildTimePicker(String label, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -298,8 +311,9 @@ class SignUpStep3 extends StatelessWidget {
              Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
            ],
         ),
-        const TextField(
-          decoration: InputDecoration(
+        TextField(
+          controller: controller,
+          decoration: const InputDecoration(
             hintText: "09:00 AM",
             hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
             enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
