@@ -1,0 +1,199 @@
+import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/widgets/auth_header.dart';
+import 'sign_up_step2.dart';
+
+class SignUpStep1 extends StatefulWidget {
+  const SignUpStep1({super.key});
+
+  @override
+  State<SignUpStep1> createState() => _SignUpStep1State();
+}
+
+class _SignUpStep1State extends State<SignUpStep1> {
+  String selectedRole = 'Traveler';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const AuthHeader(),
+
+                const SizedBox(height: 20),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 30),
+                  child: Text(
+                    "Sign Up",
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      _buildRadioButton('Traveler'),
+                      const SizedBox(width: 40),
+                      _buildRadioButton('Guide'),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  Row(
+                    children: [
+                      Expanded(child: _buildTextField("First Name", "Tuan")),
+                      const SizedBox(width: 20),
+                      Expanded(child: _buildTextField("Last Name", "Tran")),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextField("Email", "Type email"),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    "Password",
+                    "Type password",
+                    obscureText: true,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Text(
+                      "Password has more than 6 letters",
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    "Confirm Password",
+                    "••••••",
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 30),
+                  const Center(
+                    child: Text.rich(
+                      TextSpan(
+                        text: "By Signing Up, you agree to our ",
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        children: [
+                          TextSpan(
+                            text: "Terms & Conditions",
+                            style: TextStyle(color: AppColors.primary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpStep2(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text("SIGN UP"),
+                  ),
+                  const SizedBox(height: 40),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Already have an account? "),
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: const Text(
+                          "Sign In",
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRadioButton(String role) {
+    bool isSelected = selectedRole == role;
+    return InkWell(
+      onTap: () => setState(() => selectedRole = role),
+      child: Row(
+        children: [
+          Icon(
+            isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+            color: isSelected ? AppColors.primary : Colors.grey,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            role,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isSelected ? AppColors.textPrimary : Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    String label,
+    String hint, {
+    bool obscureText = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        TextField(
+          obscureText: obscureText,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.grey),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.primary),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
