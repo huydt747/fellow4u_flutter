@@ -2,8 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'widgets/chat_tile.dart';
 
-class ChatScreen extends StatelessWidget {
+import '../../core/services/api_service.dart';
+
+class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  late Future<Map<String, dynamic>> _conversationsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _conversationsFuture = ApiService.get('api/chat');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,29 +51,44 @@ class ChatScreen extends StatelessWidget {
             ),
             // Scrollable List
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: const [
-                  ChatTile(
-                    name: "Yoo Jin",
-                    lastMessage: "It's a beautiful place",
-                    unreadCount: 2,
-                    time: "10:32 AM",
-                    avatarUrl: "/img/avatar/1.png",
-                  ),
-                  ChatTile(
-                    name: "Jonathan P",
-                    lastMessage: "We can start at 8am",
-                    time: "10:30 AM",
-                    avatarUrl: "/img/avatar/2.png",
-                  ),
-                  ChatTile(
-                    name: "Myung Dae",
-                    lastMessage: "See you tomorrow",
-                    time: "11:30 AM",
-                    avatarUrl: "/img/avatar/3.png",
-                  ),
-                ],
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _conversationsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+                  if (!snapshot.hasData || (snapshot.data!['conversations'] as List?)?.isEmpty != false) {
+                    return const Center(child: Text("No conversations yet."));
+                  }
+
+                  final conversations = snapshot.data!['conversations'] as List<dynamic>;
+
+                  return ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: conversations.length,
+                    itemBuilder: (context, index) {
+                      final conv = conversations[index];
+                      // Format time basic
+                      String formattedTime = "";
+                      if (conv['timestamp'] != null) {
+                        final dt = DateTime.parse(conv['timestamp']);
+                        formattedTime = "${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+                      }
+
+                      return ChatTile(
+                        peerId: conv['peerId'],
+                        name: conv['peerName'],
+                        lastMessage: conv['lastMessage'],
+                        unreadCount: conv['unreadCount'],
+                        time: formattedTime.isNotEmpty ? formattedTime : null,
+                        avatarUrl: conv['peerAvatarUrl'],
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],

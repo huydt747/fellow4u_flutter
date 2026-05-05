@@ -1,20 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/services/api_service.dart';
+import '../../core/providers/auth_provider.dart';
 import 'widgets/chat_bubble.dart';
 
-class ChatDetailScreen extends StatelessWidget {
+class ChatDetailScreen extends StatefulWidget {
+  final int peerId;
   final String name;
   final String avatarUrl;
 
   const ChatDetailScreen({
     super.key,
+    required this.peerId,
     required this.name,
     required this.avatarUrl,
   });
 
   @override
+  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+}
+
+class _ChatDetailScreenState extends State<ChatDetailScreen> {
+  List<dynamic> _messages = [];
+  bool _isLoading = true;
+  final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMessages();
+  }
+
+  Future<void> _fetchMessages() async {
+    try {
+      final res = await ApiService.get('api/chat/${widget.peerId}');
+      setState(() {
+        final messagesData = res['messages'];
+        _messages = (messagesData is List) ? messagesData : [];
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching messages: $e");
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _textController.text.trim();
+    if (text.isEmpty) return;
+
+    _textController.clear();
+    // Optimistic update
+    final currentUserId = context.read<AuthProvider>().user?['id'];
+    setState(() {
+      _messages.add({
+        'senderId': currentUserId,
+        'content': text,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+    });
+
+    try {
+      final res = await ApiService.post('api/chat/${widget.peerId}', {'content': text});
+      // the real message with id
+      setState(() {
+        _messages.last = res;
+      });
+    } catch (e) {
+      print("Error sending message: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final currentUserId = context.watch<AuthProvider>().user?['id'];
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -28,7 +89,7 @@ class ChatDetailScreen extends StatelessWidget {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(radius: 18, backgroundImage: NetworkImage(avatarUrl)),
+            CircleAvatar(radius: 18, backgroundImage: NetworkImage(widget.avatarUrl)),
             const SizedBox(width: 8),
             // The plus icon as in the mockup
             GestureDetector(
@@ -55,31 +116,33 @@ class ChatDetailScreen extends StatelessWidget {
         children: [
           _buildDateSeparator("Jan 28, 2020"),
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                ChatBubble(
-                  text: "chào em",
-                  isMe: false,
-                  senderName: "Yoo Jin",
-                  time: "10:30 AM",
-                  avatarUrl: avatarUrl,
-                  isFirstInGroup: true,
-                ),
-                const ChatBubble(
-                  text: "anh đứng đây từ chiều",
-                  isMe: false,
-                  isFirstInGroup: false,
-                ),
-                const ChatBubble(
-                  text: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaâ'",
-                  isMe: true,
-                  time: "10:31 AM",
-                  isFirstInGroup: true,
-                ),
-                const ChatBubble(text: "ok", isMe: true, isFirstInGroup: false),
-              ],
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final m = _messages[index];
+                      final isMe = m['senderId'] == currentUserId;
+                      // Grouping logic simple
+                      final isFirstInGroup = index == 0 || _messages[index - 1]['senderId'] != m['senderId'];
+                      
+                      String formattedTime = "";
+                      if (m['timestamp'] != null) {
+                        final dt = DateTime.parse(m['timestamp']);
+                        formattedTime = "${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+                      }
+
+                      return ChatBubble(
+                        text: m['content'] ?? '',
+                        isMe: isMe,
+                        senderName: isMe ? "Me" : widget.name,
+                        time: isFirstInGroup ? formattedTime : null,
+                        avatarUrl: widget.avatarUrl,
+                        isFirstInGroup: isFirstInGroup,
+                      );
+                    },
+                  ),
           ),
           _buildMessageInput(),
         ],
@@ -119,8 +182,10 @@ class ChatDetailScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(color: Colors.grey[200]!),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                controller: _textController,
+                onSubmitted: (_) => _sendMessage(),
+                decoration: const InputDecoration(
                   hintText: "Type message",
                   hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                   border: InputBorder.none,
@@ -128,12 +193,17 @@ class ChatDetailScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: _sendMessage,
+            child: _buildIconButton(Icons.send, color: AppColors.primary),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildIconButton(IconData icon) {
+  Widget _buildIconButton(IconData icon, {Color? color}) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -141,7 +211,7 @@ class ChatDetailScreen extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: Colors.grey[200]!),
       ),
-      child: Icon(icon, color: Colors.grey[600], size: 24),
+      child: Icon(icon, color: color ?? Colors.grey[600], size: 24),
     );
   }
 }

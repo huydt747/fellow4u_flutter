@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/auth_header.dart';
-import '../../core/services/api_service.dart';
+import '../../core/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'sign_up_step1.dart';
 import '../main_screen.dart';
 
@@ -31,16 +32,10 @@ class _SignInScreenState extends State<SignInScreen> {
     setState(() => isLoading = true);
 
     try {
-      // 1. Call API
-      final response = await ApiService.post("auth/login", {
-        "username": email,
-        "password": password,
-      });
-
-      // 2. Save session (Placeholder for now)
-      print("Login success: ${response['token']}");
+      // 1. Call API and save session via Provider
+      await context.read<AuthProvider>().login(email, password);
       
-      // 3. Navigate to Main Screen
+      // Navigate to Main Screen (or handled by main.dart listener, but doing it here for smooth UX)
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -49,9 +44,9 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
       }
     } finally {
       if (mounted) {

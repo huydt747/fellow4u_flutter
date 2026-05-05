@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
 class TopExperiencesSection extends StatelessWidget {
-  const TopExperiencesSection({super.key});
+  final List<dynamic> experiences;
+
+  const TopExperiencesSection({super.key, required this.experiences});
 
   @override
   Widget build(BuildContext context) {
@@ -42,22 +44,13 @@ class TopExperiencesSection extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             scrollDirection: Axis.horizontal,
-            children: const [
-              _ExperienceCard(
-                title: "2 Hour Bicycle Tour exploring Hoian",
-                location: "Hoian, Vietnam",
-                guideName: "Tuan Tran",
-                imageUrl: "img/scene/1_vertical.png",
-                guideImageUrl: "img/avatar/5.png",
-              ),
-              _ExperienceCard(
-                title: "1 day at Bana Hill",
-                location: "Bana, Vietnam",
-                guideName: "Linh Hana",
-                imageUrl: "img/scene/2_vertical.png",
-                guideImageUrl: "img/avatar/6.png",
-              ),
-            ],
+            children: experiences.map((e) => _ExperienceCard(
+              title: e['title'],
+              location: e['location'],
+              guideName: e['guideName'] ?? 'Unknown Guide',
+              imageUrl: e['imageUrl'] ?? 'img/scene/1_vertical.png',
+              guideImageUrl: e['guideImageUrl'] ?? 'img/avatar/5.png',
+            )).toList(),
           ),
         ),
       ],

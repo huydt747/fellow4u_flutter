@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
 class GuidesGridSection extends StatelessWidget {
-  const GuidesGridSection({super.key});
+  final List<dynamic> guides;
+
+  const GuidesGridSection({super.key, required this.guides});
 
   @override
   Widget build(BuildContext context) {
@@ -43,32 +45,12 @@ class GuidesGridSection extends StatelessWidget {
             crossAxisSpacing: 15,
             mainAxisSpacing: 20,
             childAspectRatio: 0.75, // Adjust based on design height
-            children: const [
-              _GuideProfileCard(
-                name: "Tuan Tran",
-                location: "Danang, Vietnam",
-                reviews: "127 Reviews",
-                imageUrl: "img/avatar/5.png",
-              ),
-              _GuideProfileCard(
-                name: "Emmy",
-                location: "Hanoi, Vietnam",
-                reviews: "89 Reviews",
-                imageUrl: "img/avatar/6.png",
-              ),
-              _GuideProfileCard(
-                name: "Linh Hana",
-                location: "Danang, Vietnam",
-                reviews: "127 Reviews",
-                imageUrl: "img/avatar/7.png",
-              ),
-              _GuideProfileCard(
-                name: "Khai Ho",
-                location: "Ho Chi Minh, Vietnam",
-                reviews: "127 Reviews",
-                imageUrl: "img/avatar/8.png",
-              ),
-            ],
+            children: guides.map((g) => _GuideProfileCard(
+              name: g['name'],
+              location: g['location'],
+              reviews: "${g['reviewCount']} Reviews",
+              imageUrl: g['avatarUrl'] ?? 'img/avatar/5.png',
+            )).toList(),
           ),
         ],
       ),

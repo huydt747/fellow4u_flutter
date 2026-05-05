@@ -4,6 +4,12 @@ import 'package:http/http.dart' as http;
 import 'dart:io' show Platform;
 
 class ApiService {
+  static String? _authToken;
+
+  static void setToken(String? token) {
+    _authToken = token;
+  }
+
   static String get baseUrl {
     if (kIsWeb) {
       return 'http://localhost:8080';
@@ -15,9 +21,14 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
+    final headers = {'Content-Type': 'application/json'};
+    if (_authToken != null) {
+      headers['Authorization'] = 'Bearer $_authToken';
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/$path'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode(body),
     );
 
@@ -25,9 +36,14 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> get(String path) async {
+    final headers = {'Content-Type': 'application/json'};
+    if (_authToken != null) {
+      headers['Authorization'] = 'Bearer $_authToken';
+    }
+
     final response = await http.get(
       Uri.parse('$baseUrl/$path'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
 
     return _handleResponse(response);

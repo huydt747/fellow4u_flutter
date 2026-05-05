@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
 class FeaturedToursSection extends StatelessWidget {
-  const FeaturedToursSection({super.key});
+  final List<dynamic> tours;
+
+  const FeaturedToursSection({super.key, required this.tours});
 
   @override
   Widget build(BuildContext context) {
@@ -41,38 +43,22 @@ class FeaturedToursSection extends StatelessWidget {
           shrinkWrap: true, // Necessary within SingleChildScrollView
           physics:
               const NeverScrollableScrollPhysics(), // Horizontal scrolling handled by SingleChildScrollView's column
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: const [
-            _TourCard(
-              title: "Da Nang - Ba Na - Hoi An",
-              date: "Jan 30, 2020",
-              duration: "3 days",
-              price: "\$400.00",
-              likes: "1247 likes",
-              isFavorite: false,
-              imageUrl: "img/scene/1.png",
-            ),
-            SizedBox(height: 20),
-            _TourCard(
-              title: "Melbourne - Sydney",
-              date: "Jan 30, 2020",
-              duration: "3 days",
-              price: "\$600.00",
-              likes: "1247 likes",
-              isFavorite: true,
-              imageUrl: "img/scene/2.png",
-            ),
-            SizedBox(height: 20),
-            _TourCard(
-              title: "Hanoi - Ha Long Bay",
-              date: "Jan 30, 2020",
-              duration: "3 days",
-              price: "\$300.00",
-              likes: "1247 likes",
-              isFavorite: false,
-              imageUrl: "img/scene/3.png",
-            ),
-            SizedBox(height: 30),
+          children: [
+            ...tours.map((t) => Column(
+                  children: [
+                    _TourCard(
+                      title: t['title'],
+                      date: t['location'].split(' • ').first, // using location for date + duration since schema lacked it
+                      duration: t['location'].split(' • ').last,
+                      price: "\$${t['price'].toStringAsFixed(2)}",
+                      likes: "${t['likes'].toInt()} likes",
+                      isFavorite: t['title'].contains('Sydney'), // Hardcoding to match UI initially
+                      imageUrl: t['imageUrl'] ?? 'img/scene/1.png',
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                )),
+            const SizedBox(height: 10),
           ],
         ),
       ],

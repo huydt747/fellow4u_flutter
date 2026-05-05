@@ -1,34 +1,56 @@
 import 'package:flutter/material.dart';
 
-class WishListTab extends StatelessWidget {
+import '../../../core/services/api_service.dart';
+
+class WishListTab extends StatefulWidget {
   const WishListTab({super.key});
 
   @override
+  State<WishListTab> createState() => _WishListTabState();
+}
+
+class _WishListTabState extends State<WishListTab> {
+  late Future<Map<String, dynamic>> _tripsDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _tripsDataFuture = ApiService.get('api/trips');
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      children: const [
-        WishListCard(
-          title: 'Melbourne - Sydney',
-          imagePath: 'img/sydney.png',
-          date: 'Jan 30, 2020',
-          duration: '3 days',
-          price: '\$600.00',
-          rating: 4.5,
-          likes: '1247 likes',
-          isLiked: true,
-        ),
-        WishListCard(
-          title: 'Hanoi - Ha Long Bay',
-          imagePath: 'img/halong.png',
-          date: 'Jan 30, 2020',
-          duration: '3 days',
-          price: '\$300.00',
-          rating: 5.0,
-          likes: '1247 likes',
-          isLiked: false,
-        ),
-      ],
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _tripsDataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: Text('No trips found'));
+        }
+
+        final data = snapshot.data!;
+        final allTrips = data['trips'] as List<dynamic>? ?? [];
+        final wishlistTrips = allTrips.where((t) => t['status'] == 'wishlist').toList();
+
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          children: wishlistTrips.map((t) => WishListCard(
+            title: t['title'],
+            imagePath: t['imageUrl'] ?? 'img/sydney.png',
+            date: t['date'] ?? 'Jan 30, 2020',
+            duration: t['duration'] ?? '3 days',
+            price: t['price'] ?? '\$600.00',
+            rating: (t['rating'] ?? 4.5).toDouble(),
+            likes: t['likes'] ?? '1247 likes',
+            isLiked: t['isLiked'] ?? false,
+          )).toList(),
+        );
+      },
     );
   }
 }
