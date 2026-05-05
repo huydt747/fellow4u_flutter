@@ -9,9 +9,14 @@ Future<Response> onRequest(RequestContext context) async {
     return Response.json(statusCode: 405, body: {'message': 'Method not allowed'});
   }
 
-  // Load environment variables
-  var env = DotEnv(includePlatformEnvironment: true)..load();
-  final secret = env['JWT_SECRET'] ?? 'default_secret';
+  // Load environment variables safely
+  String secret;
+  try {
+    final env = DotEnv(includePlatformEnvironment: true)..load();
+    secret = env['JWT_SECRET'] ?? 'default_secret';
+  } catch (_) {
+    secret = 'default_secret';
+  }
 
   // Extract body
   final body = await context.request.json() as Map<String, dynamic>;
@@ -46,7 +51,7 @@ Future<Response> onRequest(RequestContext context) async {
       'role': user.role,
     });
     
-    final token = jwt.sign(SecretKey(secret), expiresIn: const Duration(hours: 24));
+    final token = jwt.sign(SecretKey(secret), expiresIn: const Duration(days: 30));
     
     return Response.json(body: {
       'message': 'Login successful',

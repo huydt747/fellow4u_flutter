@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/auth_provider.dart';
 import 'profile_setting.dart';
 import 'profile_add_photo.dart';
 
@@ -14,6 +16,17 @@ class ProfileScreen extends StatelessWidget {
     const double profileTop =
         coverHeight - (profileSize / 2) + profileOffsetFromCover;
 
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text("No user data available.")),
+      );
+    }
+
+    final languages = (user['languages'] as List<dynamic>?)?.map((l) => l.toString()).toList() ?? [];
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -26,11 +39,9 @@ class ProfileScreen extends StatelessWidget {
                 Container(
                   height: coverHeight,
                   width: double.infinity,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=1000&auto=format&fit=crop',
-                      ),
+                      image: NetworkImage(user['coverPhotoUrl'] ?? 'https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=1000&auto=format&fit=crop'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -106,8 +117,8 @@ class ProfileScreen extends StatelessWidget {
                               offset: const Offset(0, 5),
                             ),
                           ],
-                          image: const DecorationImage(
-                            image: NetworkImage('/img/avatar/1.png'),
+                          image: DecorationImage(
+                            image: NetworkImage(user['avatarUrl'] ?? '/img/avatar/1.png'),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -167,9 +178,9 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Tuan Tran',
-                        style: TextStyle(
+                      Text(
+                        user['fullName'] ?? user['username'] ?? 'User Name',
+                        style: const TextStyle(
                           fontSize: 24, // Adjusted size
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
@@ -186,7 +197,7 @@ class ProfileScreen extends StatelessWidget {
                           const Icon(Icons.star, color: Colors.amber, size: 18),
                           const SizedBox(width: 8),
                           Text(
-                            '127 Reviews',
+                            '${user['reviewCount'] ?? 0} Reviews',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],
@@ -234,11 +245,7 @@ class ProfileScreen extends StatelessWidget {
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
-                    children: [
-                      _buildLanguageChip('Vietnamese'),
-                      _buildLanguageChip('English'),
-                      _buildLanguageChip('Korean'),
-                    ],
+                    children: languages.map((lang) => _buildLanguageChip(lang)).toList(),
                   ),
                   const SizedBox(height: 25),
                   
@@ -265,7 +272,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   // Introduction Text
                   Text(
-                    "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
+                    user['bio'] ?? 'No bio available.',
                     style: TextStyle(
                       fontSize: 15,
                       color: Colors.grey[800],

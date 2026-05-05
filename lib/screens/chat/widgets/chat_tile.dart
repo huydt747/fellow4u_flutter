@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../chat_detail_screen.dart';
 
 class ChatTile extends StatelessWidget {
+  final int peerId;
   final String name;
   final String lastMessage;
   final String? time;
@@ -10,6 +11,7 @@ class ChatTile extends StatelessWidget {
 
   const ChatTile({
     super.key,
+    required this.peerId,
     required this.name,
     required this.lastMessage,
     this.time,
@@ -25,6 +27,7 @@ class ChatTile extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => ChatDetailScreen(
+              peerId: peerId,
               name: name,
               avatarUrl: avatarUrl ?? "https://i.pravatar.cc/150?img=1",
             ),

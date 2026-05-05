@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/services/api_service.dart';
 import 'profile_add_photo.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -10,12 +13,19 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _firstNameController =
-      TextEditingController(text: 'Yoo');
-  final TextEditingController _lastNameController =
-      TextEditingController(text: 'Jin');
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
   final TextEditingController _passwordController =
       TextEditingController(text: '••••••');
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthProvider>().user;
+    _firstNameController = TextEditingController(text: user?['firstName'] ?? '');
+    _lastNameController = TextEditingController(text: user?['lastName'] ?? '');
+  }
 
   @override
   void dispose() {
@@ -25,8 +35,49 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _saveProfile() async {
+    setState(() => _isSaving = true);
+
+    try {
+      final firstName = _firstNameController.text.trim();
+      final lastName = _lastNameController.text.trim();
+      final fullName = '$firstName $lastName'.trim();
+
+      final result = await ApiService.post('api/profile/update', {
+        'firstName': firstName,
+        'lastName': lastName,
+        'fullName': fullName,
+      });
+
+      if (mounted) {
+        // Update local user data in AuthProvider
+        context.read<AuthProvider>().updateUserProfile({
+          'firstName': firstName,
+          'lastName': lastName,
+          'fullName': fullName,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+    final avatarUrl = user?['avatarUrl'];
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -47,18 +98,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {
-              // Save logic here
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'SAVE',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            onPressed: _isSaving ? null : _saveProfile,
+            child: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text(
+                    'SAVE',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
           const SizedBox(width: 8),
         ],
@@ -82,9 +136,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           width: 1,
                         ),
                       ),
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         radius: 60,
-                        backgroundImage: AssetImage('assets/profile.png'),
+                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                        child: avatarUrl == null
+                            ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                            : null,
                       ),
                     ),
                     Positioned(
