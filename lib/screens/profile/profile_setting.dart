@@ -74,13 +74,16 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const EditProfileScreen(),
                           ),
                         );
+                        if (result == true && mounted) {
+                          Navigator.of(context).pop(true);
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(

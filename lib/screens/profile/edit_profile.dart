@@ -1,220 +1,175 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
-import 'profile_add_photo.dart';
+import '../../core/services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final int? userId;
+  const EditProfileScreen({super.key, this.userId});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _firstNameController =
-      TextEditingController(text: 'Yoo');
-  final TextEditingController _lastNameController =
-      TextEditingController(text: 'Jin');
-  final TextEditingController _passwordController =
-      TextEditingController(text: '••••••');
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  
+  String? avatarUrl;
+  String? coverPhotoUrl;
+  bool isLoading = true;
+  bool isSaving = false;
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final response = await ApiService.get('api/users');
+      final List<dynamic> users = response as List<dynamic>;
+      if (users.isNotEmpty) {
+        final userData = widget.userId != null 
+            ? users.firstWhere((u) => u['id'] == widget.userId, orElse: () => users.first)
+            : users.first;
+        setState(() {
+          _firstNameController.text = userData['firstName'] ?? '';
+          _lastNameController.text = userData['lastName'] ?? '';
+          avatarUrl = userData['avatarUrl'];
+          coverPhotoUrl = userData['coverPhotoUrl'];
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _pickAndUploadImage(bool isAvatar) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    setState(() => isSaving = true);
+    try {
+      final bytes = await image.readAsBytes();
+      final response = await ApiService.uploadFile('api/upload', bytes, image.name);
+      setState(() {
+        if (isAvatar) avatarUrl = response['url'];
+        else coverPhotoUrl = response['url'];
+        isSaving = false;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      setState(() => isSaving = false);
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    setState(() => isSaving = true);
+    try {
+      await ApiService.post('auth/update', {
+        'userId': widget.userId ?? 1,
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
+        'avatarUrl': avatarUrl,
+        'coverPhotoUrl': coverPhotoUrl,
+      });
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      setState(() => isSaving = false);
+    }
+  }
 
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black, size: 28),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        backgroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.close, color: Colors.black, size: 28), onPressed: () => Navigator.of(context).pop()),
+        title: const Text('Edit Profile', style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600)),
         centerTitle: true,
         actions: [
-          TextButton(
-            onPressed: () {
-              // Save logic here
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'SAVE',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          if (isSaving) const Center(child: Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+          else TextButton(onPressed: _saveProfile, child: const Text('SAVE', style: TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.bold))),
           const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              // Profile Image with Camera Icon
-              Center(
-                child: Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: const CircleAvatar(
-                        radius: 60,
-                        backgroundImage: AssetImage('assets/profile.png'),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AddPhotoScreen(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 50),
-              // Name Fields
-              Row(
+        child: Column(
+          children: [
+            GestureDetector(
+              onTap: () => _pickAndUploadImage(false),
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: _buildInputField(
-                      label: 'First Name',
-                      controller: _firstNameController,
-                    ),
+                  Container(
+                    height: 150, width: double.infinity, color: Colors.grey[200],
+                    child: _ServerImage(url: getFullUrl(coverPhotoUrl), fit: BoxFit.cover, fallbackUrl: ''),
                   ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: _buildInputField(
-                      label: 'Last Name',
-                      controller: _lastNameController,
-                    ),
-                  ),
+                  Positioned(bottom: 10, right: 10, child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle), child: const Icon(Icons.edit, color: Colors.white, size: 16))),
                 ],
               ),
-              const SizedBox(height: 30),
-              // Password Field
-              _buildInputField(
-                label: 'Password',
-                controller: _passwordController,
-                obscureText: true,
-              ),
-              const SizedBox(height: 30),
-              // Change Password Link
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const SizedBox(height: 30),
+            Center(
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1)),
+                    child: ClipOval(child: SizedBox(width: 120, height: 120, child: _ServerImage(url: getFullUrl(avatarUrl), fit: BoxFit.cover, fallbackUrl: 'https://i.pravatar.cc/300'))),
                   ),
-                  child: const Text(
-                    'Change Password',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                  Positioned(bottom: 0, right: 0, child: GestureDetector(onTap: () => _pickAndUploadImage(true), child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle), child: const Icon(Icons.camera_alt, color: Colors.white, size: 18))))),
+                ],
               ),
-            ],
-          ),
+            ),
+            Padding(padding: const EdgeInsets.all(24), child: Column(children: [const SizedBox(height: 20), Row(children: [Expanded(child: _buildInputField(label: 'First Name', controller: _firstNameController)), const SizedBox(width: 24), Expanded(child: _buildInputField(label: 'Last Name', controller: _lastNameController))])])),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    bool obscureText = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.black87,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        TextField(
-          controller: controller,
-          obscureText: obscureText,
-          style: const TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            fontWeight: FontWeight.w400,
-          ),
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.symmetric(vertical: 8),
-            isDense: true,
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.grey.withValues(alpha: 0.3),
-              ),
-            ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary),
-            ),
-          ),
-        ),
-      ],
+  String getFullUrl(String? path) {
+    if (path == null) return '';
+    if (path.startsWith('/')) return '${ApiService.baseUrl}$path';
+    return path;
+  }
+
+  Widget _buildInputField({required String label, required TextEditingController controller}) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w500)), TextField(controller: controller, decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 8), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary))))]);
+  }
+}
+
+class _ServerImage extends StatelessWidget {
+  final String url; final BoxFit fit; final String fallbackUrl;
+  const _ServerImage({required this.url, required this.fit, required this.fallbackUrl});
+  @override
+  Widget build(BuildContext context) {
+    if (url.isEmpty) return fallbackUrl.isEmpty ? const Icon(Icons.add_a_photo, size: 40, color: Colors.grey) : Image.network(fallbackUrl, fit: fit);
+    if (!url.contains('/uploads/')) return Image.network(url, fit: fit);
+    return FutureBuilder<dynamic>(
+      future: ApiService.get(url.replaceFirst(ApiService.baseUrl + '/', '')),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError || snapshot.data == null) return const Icon(Icons.error);
+        try {
+          final data = snapshot.data as Map<String, dynamic>;
+          return Image.memory(base64Decode(data['data'] as String), fit: fit);
+        } catch (e) { return const Icon(Icons.error); }
+      },
     );
   }
 }

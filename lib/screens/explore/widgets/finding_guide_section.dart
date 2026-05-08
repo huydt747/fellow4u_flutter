@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/widgets/server_image.dart';
 
-class FindingGuideSection extends StatelessWidget {
+class FindingGuideSection extends StatefulWidget {
   const FindingGuideSection({super.key});
+
+  @override
+  State<FindingGuideSection> createState() => _FindingGuideSectionState();
+}
+
+class _FindingGuideSectionState extends State<FindingGuideSection> {
+  List<dynamic> guides = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchGuides();
+  }
+
+  Future<void> _fetchGuides() async {
+    try {
+      final response = await ApiService.get('api/users');
+      setState(() {
+        guides = response as List<dynamic>;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching guides: $e');
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +40,7 @@ class FindingGuideSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 50), // Spacing for the overlapping search bar
+          const SizedBox(height: 50),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -24,9 +53,9 @@ class FindingGuideSection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: _fetchGuides,
                 child: const Text(
-                  "SEE MORE",
+                  "REFRESH",
                   style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -37,37 +66,39 @@ class FindingGuideSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          _GuideCard(
-            name: "Yoo Jin",
-            country: "Korea",
-            date: "Jan 30, 2020",
-            location: "Danang, Vietnam",
-            imageUrl: "img/avatar/1.png",
-          ),
-          const SizedBox(height: 15),
-          _GuideCard(
-            name: "Jon Mark",
-            country: "Spain",
-            date: "Jan 30, 2020",
-            location: "Danang, Vietnam",
-            imageUrl: "img/avatar/2.png",
-          ),
-          const SizedBox(height: 15),
-          _GuideCard(
-            name: "Lynd Nguyen",
-            country: "US",
-            date: "Jan 30, 2020",
-            location: "Danang, Vietnam",
-            imageUrl: "img/avatar/3.png",
-          ),
-          const SizedBox(height: 15),
-          _GuideCard(
-            name: "Patrick",
-            country: "Italy",
-            date: "Jan 30, 2020",
-            location: "Danang, Vietnam",
-            imageUrl: "img/avatar/4.png",
-          ),
+          if (isLoading)
+            const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+          else if (guides.isEmpty)
+            const Center(child: Text("No guides found"))
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: guides.length > 4 ? 4 : guides.length, // Show up to 4 guides
+              separatorBuilder: (context, index) => const SizedBox(height: 15),
+              itemBuilder: (context, index) {
+                final guide = guides[index];
+                final firstName = guide['firstName'] ?? '';
+                final lastName = guide['lastName'] ?? '';
+                final fullName = '$firstName $lastName';
+                final country = guide['country'] ?? 'Unknown';
+                final city = guide['city'] ?? 'Location';
+                final avatarUrl = guide['avatarUrl'];
+                
+                // Get original URL if it's from the server
+                final fullAvatarUrl = avatarUrl != null && avatarUrl.startsWith('/')
+                    ? '${ApiService.baseUrl}$avatarUrl'
+                    : avatarUrl;
+
+                return _GuideCard(
+                  name: fullName,
+                  country: country,
+                  date: "Joined Jan 2024", // Placeholder date
+                  location: city,
+                  imageUrl: fullAvatarUrl,
+                );
+              },
+            ),
         ],
       ),
     );
@@ -79,7 +110,7 @@ class _GuideCard extends StatelessWidget {
   final String country;
   final String date;
   final String location;
-  final String imageUrl;
+  final String? imageUrl;
 
   const _GuideCard({
     required this.name,
@@ -98,7 +129,7 @@ class _GuideCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -111,10 +142,10 @@ class _GuideCard extends StatelessWidget {
             // Left Image
             Expanded(
               flex: 2,
-              child: Image.asset(
-                imageUrl,
-                fit: BoxFit.cover,
+              child: ServerImage(
+                url: imageUrl,
                 height: double.infinity,
+                fallbackUrl: 'https://i.pravatar.cc/300?u=$name',
               ),
             ),
             // Right Content
@@ -134,7 +165,7 @@ class _GuideCard extends StatelessWidget {
                         children: [
                           TextSpan(
                             text: name,
-                            style: FontWeight.bold.toStyle(),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           TextSpan(
                             text: " from $country",
@@ -195,8 +226,4 @@ class _GuideCard extends StatelessWidget {
       ),
     );
   }
-}
-
-extension on FontWeight {
-  TextStyle toStyle() => TextStyle(fontWeight: this);
 }

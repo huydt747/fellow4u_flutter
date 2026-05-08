@@ -5,21 +5,23 @@ part 'database.g.dart';
 
 class Users extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get username => text().withLength(min: 3, max: 128).unique()(); // Email
+  TextColumn get username =>
+      text().withLength(min: 3, max: 128).unique()(); // Email
   TextColumn get passwordHash => text()();
-  TextColumn get role => text().withDefault(const Constant('Traveler'))(); // Traveler or Guide
-  
+  TextColumn get role =>
+      text().withDefault(const Constant('Traveler'))(); // Traveler or Guide
+
   // Name fields
   TextColumn get firstName => text().nullable()();
   TextColumn get lastName => text().nullable()();
   TextColumn get fullName => text().nullable()();
-  
+
   // Address fields
   TextColumn get address => text().nullable()();
   TextColumn get city => text().nullable()();
   TextColumn get country => text().nullable()();
   TextColumn get phone => text().nullable()();
-  
+
   // Guide specific / Background info
   TextColumn get guideLicenseUrl => text().nullable()();
   TextColumn get identityCardUrl => text().nullable()();
@@ -27,7 +29,7 @@ class Users extends Table {
   TextColumn get coverPhotoUrl => text().nullable()();
   TextColumn get bio => text().nullable()();
   TextColumn get videoIntroUrl => text().nullable()();
-  
+
   // Stats
   IntColumn get reviewCount => integer().withDefault(const Constant(0))();
   RealColumn get rating => real().withDefault(const Constant(0.0))();
@@ -41,9 +43,11 @@ class Languages extends Table {
 class UserLanguages extends Table {
   IntColumn get userId => integer().references(Users, #id)();
   IntColumn get languageId => integer().references(Languages, #id)();
-  
+
   @override
-  List<Set<Column>> get uniqueKeys => [{userId, languageId}];
+  List<Set<Column>> get uniqueKeys => [
+    {userId, languageId},
+  ];
 }
 
 class Fees extends Table {
@@ -59,7 +63,7 @@ class Availability extends Table {
   IntColumn get userId => integer().references(Users, #id)();
   TextColumn get dayOfWeek => text()(); // Monday, Tuesday, etc.
   TextColumn get fromTime => text()(); // 09:00 AM
-  TextColumn get toTime => text()();   // 05:00 PM
+  TextColumn get toTime => text()(); // 05:00 PM
 }
 
 class Trips extends Table {
@@ -102,10 +106,10 @@ class Experiences extends Table {
 
 class Conversations extends Table {
   IntColumn get id => integer().autoIncrement()();
-  
+
   @ReferenceName("startedConversations")
   IntColumn get user1Id => integer().references(Users, #id)();
-  
+
   @ReferenceName("receivedConversations")
   IntColumn get user2Id => integer().references(Users, #id)();
 }
@@ -118,11 +122,23 @@ class Messages extends Table {
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
 }
 
-@DriftDatabase(tables: [
-  Users, Languages, UserLanguages, Fees, Availability, Trips, Guides, Tours, Experiences, Conversations, Messages
-])
+@DriftDatabase(
+  tables: [
+    Users,
+    Languages,
+    UserLanguages,
+    Fees,
+    Availability,
+    Trips,
+    Guides,
+    Tours,
+    Experiences,
+    Conversations,
+    Messages,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
-  AppDatabase(QueryExecutor e) : super(e);
+  AppDatabase(super.e);
 
   @override
   int get schemaVersion => 3;
