@@ -33,6 +33,10 @@ class Users extends Table {
   // Stats
   IntColumn get reviewCount => integer().withDefault(const Constant(0))();
   RealColumn get rating => real().withDefault(const Constant(0.0))();
+  
+  // Activity/Experience info (each guide has one)
+  TextColumn get activityTitle => text().nullable()();
+  TextColumn get activityImageUrl => text().nullable()();
 }
 
 class Languages extends Table {
@@ -93,6 +97,9 @@ class Tours extends Table {
   RealColumn get price => real()();
   RealColumn get rating => real().withDefault(const Constant(0.0))();
   TextColumn get imageUrl => text().nullable()();
+  TextColumn get date => text().nullable()();
+  TextColumn get duration => text().nullable()();
+  IntColumn get likes => integer().withDefault(const Constant(0))();
 }
 
 class Experiences extends Table {
@@ -102,6 +109,7 @@ class Experiences extends Table {
   RealColumn get price => real()();
   RealColumn get rating => real().withDefault(const Constant(0.0))();
   TextColumn get imageUrl => text().nullable()();
+  IntColumn get guideId => integer().references(Users, #id)();
 }
 
 class Conversations extends Table {
@@ -122,6 +130,13 @@ class Messages extends Table {
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
 }
 
+class News extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  TextColumn get date => text()();
+  TextColumn get imageUrl => text()();
+}
+
 @DriftDatabase(
   tables: [
     Users,
@@ -135,6 +150,7 @@ class Messages extends Table {
     Experiences,
     Conversations,
     Messages,
+    News,
   ],
 )
 class AppDatabase extends _$AppDatabase {

@@ -1,8 +1,36 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_service.dart';
 
-class TravelNewsSection extends StatelessWidget {
+class TravelNewsSection extends StatefulWidget {
   const TravelNewsSection({super.key});
+
+  @override
+  State<TravelNewsSection> createState() => _TravelNewsSectionState();
+}
+
+class _TravelNewsSectionState extends State<TravelNewsSection> {
+  List<dynamic> newsItems = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNews();
+  }
+
+  Future<void> _fetchNews() async {
+    try {
+      final response = await ApiService.get('api/news');
+      setState(() {
+        newsItems = response as List<dynamic>;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching news: $e');
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +51,7 @@ class TravelNewsSection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: _fetchNews,
                 child: const Text(
                   "SEE MORE",
                   style: TextStyle(
@@ -37,31 +65,29 @@ class TravelNewsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        ListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: const [
-            _NewsItem(
-              title: "New Destination in Danang City",
-              date: "Feb 5, 2020",
-              imageUrl: "img/scene/5.png",
-            ),
-            SizedBox(height: 30),
-            _NewsItem(
-              title: "\$1 Flight Ticket",
-              date: "Feb 5, 2020",
-              imageUrl: "img/scene/6.png",
-            ),
-            SizedBox(height: 30),
-            _NewsItem(
-              title: "Visit Korea this Tet Holiday",
-              date: "Jan 26, 2020",
-              imageUrl: "img/scene/1.png",
-            ),
-            SizedBox(height: 40),
-          ],
-        ),
+        if (isLoading)
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+        else if (newsItems.isEmpty)
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No travel news found")))
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: newsItems.length,
+            itemBuilder: (context, index) {
+              final news = newsItems[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 30),
+                child: _NewsItem(
+                  title: news['title'] ?? 'News',
+                  date: news['date'] ?? 'N/A',
+                  imageUrl: news['imageUrl'] ?? 'img/scene/1.png',
+                ),
+              );
+            },
+          ),
+        const SizedBox(height: 10),
       ],
     );
   }
@@ -96,12 +122,24 @@ class _NewsItem extends StatelessWidget {
         const SizedBox(height: 15),
         ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: Image.asset(
-            imageUrl,
-            height: 180,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
+          child: imageUrl.startsWith('http')
+              ? Image.network(
+                  imageUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  imageUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 180,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                  ),
+                ),
         ),
       ],
     );

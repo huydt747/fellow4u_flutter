@@ -1,8 +1,40 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/widgets/server_image.dart';
 
-class TopExperiencesSection extends StatelessWidget {
+class TopExperiencesSection extends StatefulWidget {
   const TopExperiencesSection({super.key});
+
+  @override
+  State<TopExperiencesSection> createState() => _TopExperiencesSectionState();
+}
+
+class _TopExperiencesSectionState extends State<TopExperiencesSection> {
+  List<dynamic> activities = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchActivities();
+  }
+
+  Future<void> _fetchActivities() async {
+    try {
+      final response = await ApiService.get('api/users?role=Guide');
+      setState(() {
+        // Only show guides who have an activity defined
+        activities = (response as List<dynamic>).where((u) => 
+          u['activityTitle'] != null && u['activityImageUrl'] != null
+        ).toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching activities: $e');
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +55,7 @@ class TopExperiencesSection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: _fetchActivities,
                 child: const Text(
                   "SEE MORE",
                   style: TextStyle(
@@ -37,29 +69,43 @@ class TopExperiencesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        SizedBox(
-          height: 420, // Increased height to prevent bottom overflow
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            scrollDirection: Axis.horizontal,
-            children: const [
-              _ExperienceCard(
-                title: "2 Hour Bicycle Tour exploring Hoian",
-                location: "Hoian, Vietnam",
-                guideName: "Tuan Tran",
-                imageUrl: "img/scene/1_vertical.png",
-                guideImageUrl: "img/avatar/5.png",
-              ),
-              _ExperienceCard(
-                title: "1 day at Bana Hill",
-                location: "Bana, Vietnam",
-                guideName: "Linh Hana",
-                imageUrl: "img/scene/2_vertical.png",
-                guideImageUrl: "img/avatar/6.png",
-              ),
-            ],
+        if (isLoading)
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+        else if (activities.isEmpty)
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No experiences found")))
+        else
+          SizedBox(
+            height: 420,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              scrollDirection: Axis.horizontal,
+              itemCount: activities.length,
+              itemBuilder: (context, index) {
+                final activity = activities[index];
+                final title = activity['activityTitle'] ?? 'Experience';
+                final location = "${activity['city'] ?? 'Danang'}, ${activity['country'] ?? 'Vietnam'}";
+                final guideName = activity['fullName'] ?? activity['firstName'] ?? 'Guide';
+                
+                final imageUrl = activity['activityImageUrl'];
+                final fullImageUrl = imageUrl != null && imageUrl.startsWith('/')
+                    ? '${ApiService.baseUrl}$imageUrl'
+                    : imageUrl;
+
+                final guideImageUrl = activity['avatarUrl'];
+                final fullGuideImageUrl = guideImageUrl != null && guideImageUrl.startsWith('/')
+                    ? '${ApiService.baseUrl}$guideImageUrl'
+                    : guideImageUrl;
+
+                return _ExperienceCard(
+                  title: title,
+                  location: location,
+                  guideName: guideName,
+                  imageUrl: fullImageUrl,
+                  guideImageUrl: fullGuideImageUrl,
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -69,8 +115,8 @@ class _ExperienceCard extends StatelessWidget {
   final String title;
   final String location;
   final String guideName;
-  final String imageUrl;
-  final String guideImageUrl;
+  final String? imageUrl;
+  final String? guideImageUrl;
 
   const _ExperienceCard({
     required this.title,
@@ -94,11 +140,12 @@ class _ExperienceCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  imageUrl,
+                child: ServerImage(
+                  url: imageUrl,
                   height: 280,
                   width: 240,
                   fit: BoxFit.cover,
+                  fallbackUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1000',
                 ),
               ),
               // Guide Avatar with thick border
@@ -119,7 +166,16 @@ class _ExperienceCard extends StatelessWidget {
                         ),
                         child: CircleAvatar(
                           radius: 40,
-                          backgroundImage: NetworkImage(guideImageUrl),
+                          backgroundColor: Colors.white,
+                          child: ClipOval(
+                            child: ServerImage(
+                              url: guideImageUrl,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              fallbackUrl: 'https://i.pravatar.cc/300?u=$guideName',
+                            ),
+                          ),
                         ),
                       ),
                       // Name Pill Overlay
@@ -154,6 +210,8 @@ class _ExperienceCard extends StatelessWidget {
           // Title
           Text(
             title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -166,12 +224,15 @@ class _ExperienceCard extends StatelessWidget {
             children: [
               const Icon(Icons.location_on, color: AppColors.primary, size: 18),
               const SizedBox(width: 4),
-              Text(
-                location,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Text(
+                  location,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -181,3 +242,4 @@ class _ExperienceCard extends StatelessWidget {
     );
   }
 }
+

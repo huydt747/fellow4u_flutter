@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/widgets/server_image.dart';
 
-class GuidesGridSection extends StatelessWidget {
+class GuidesGridSection extends StatefulWidget {
   const GuidesGridSection({super.key});
+
+  @override
+  State<GuidesGridSection> createState() => _GuidesGridSectionState();
+}
+
+class _GuidesGridSectionState extends State<GuidesGridSection> {
+  List<dynamic> guides = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchGuides();
+  }
+
+  Future<void> _fetchGuides() async {
+    try {
+      final response = await ApiService.get('api/users?role=Guide');
+      setState(() {
+        guides = response as List<dynamic>;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching guides: $e');
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +52,7 @@ class GuidesGridSection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: _fetchGuides,
                 child: const Text(
                   "SEE MORE",
                   style: TextStyle(
@@ -36,40 +65,44 @@ class GuidesGridSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 20,
-            childAspectRatio: 0.75, // Adjust based on design height
-            children: const [
-              _GuideProfileCard(
-                name: "Tuan Tran",
-                location: "Danang, Vietnam",
-                reviews: "127 Reviews",
-                imageUrl: "img/avatar/5.png",
+          if (isLoading)
+            const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+          else if (guides.isEmpty)
+            const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No guides found")))
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 20,
+                childAspectRatio: 0.75,
               ),
-              _GuideProfileCard(
-                name: "Emmy",
-                location: "Hanoi, Vietnam",
-                reviews: "89 Reviews",
-                imageUrl: "img/avatar/6.png",
-              ),
-              _GuideProfileCard(
-                name: "Linh Hana",
-                location: "Danang, Vietnam",
-                reviews: "127 Reviews",
-                imageUrl: "img/avatar/7.png",
-              ),
-              _GuideProfileCard(
-                name: "Khai Ho",
-                location: "Ho Chi Minh, Vietnam",
-                reviews: "127 Reviews",
-                imageUrl: "img/avatar/8.png",
-              ),
-            ],
-          ),
+              itemCount: guides.length > 4 ? 4 : guides.length,
+              itemBuilder: (context, index) {
+                final guide = guides[index];
+                final firstName = guide['firstName'] ?? '';
+                final lastName = guide['lastName'] ?? '';
+                final fullName = guide['fullName'] ?? '$firstName $lastName';
+                final city = guide['city'] ?? 'Danang';
+                final country = guide['country'] ?? 'Vietnam';
+                final reviews = "${guide['reviewCount'] ?? 0} Reviews";
+                final avatarUrl = guide['avatarUrl'];
+                
+                // Get original URL if it's from the server
+                final fullAvatarUrl = avatarUrl != null && avatarUrl.startsWith('/')
+                    ? '${ApiService.baseUrl}$avatarUrl'
+                    : avatarUrl;
+
+                return _GuideProfileCard(
+                  name: fullName,
+                  location: "$city, $country",
+                  reviews: reviews,
+                  imageUrl: fullAvatarUrl,
+                );
+              },
+            ),
         ],
       ),
     );
@@ -80,7 +113,7 @@ class _GuideProfileCard extends StatelessWidget {
   final String name;
   final String location;
   final String reviews;
-  final String imageUrl;
+  final String? imageUrl;
 
   const _GuideProfileCard({
     required this.name,
@@ -100,11 +133,12 @@ class _GuideProfileCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  imageUrl,
+                child: ServerImage(
+                  url: imageUrl,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
+                  fallbackUrl: 'https://i.pravatar.cc/300?u=$name',
                 ),
               ),
               // Stars and reviews overlay
@@ -172,3 +206,4 @@ class _GuideProfileCard extends StatelessWidget {
     );
   }
 }
+

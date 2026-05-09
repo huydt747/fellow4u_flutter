@@ -22,7 +22,7 @@ class _FindingGuideSectionState extends State<FindingGuideSection> {
 
   Future<void> _fetchGuides() async {
     try {
-      final response = await ApiService.get('api/users');
+      final response = await ApiService.get('api/users?role=Traveler');
       setState(() {
         guides = response as List<dynamic>;
         isLoading = false;
@@ -69,7 +69,7 @@ class _FindingGuideSectionState extends State<FindingGuideSection> {
           if (isLoading)
             const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
           else if (guides.isEmpty)
-            const Center(child: Text("No guides found"))
+            const Center(child: Text("No travelers found"))
           else
             ListView.separated(
               shrinkWrap: true,

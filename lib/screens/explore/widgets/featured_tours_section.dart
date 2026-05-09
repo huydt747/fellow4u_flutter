@@ -1,8 +1,36 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_service.dart';
 
-class FeaturedToursSection extends StatelessWidget {
+class FeaturedToursSection extends StatefulWidget {
   const FeaturedToursSection({super.key});
+
+  @override
+  State<FeaturedToursSection> createState() => _FeaturedToursSectionState();
+}
+
+class _FeaturedToursSectionState extends State<FeaturedToursSection> {
+  List<dynamic> tours = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTours();
+  }
+
+  Future<void> _fetchTours() async {
+    try {
+      final response = await ApiService.get('api/tours');
+      setState(() {
+        tours = response as List<dynamic>;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching tours: $e');
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +51,7 @@ class FeaturedToursSection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: _fetchTours,
                 child: const Text(
                   "SEE MORE",
                   style: TextStyle(
@@ -37,44 +65,33 @@ class FeaturedToursSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        ListView(
-          shrinkWrap: true, // Necessary within SingleChildScrollView
-          physics:
-              const NeverScrollableScrollPhysics(), // Horizontal scrolling handled by SingleChildScrollView's column
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: const [
-            _TourCard(
-              title: "Da Nang - Ba Na - Hoi An",
-              date: "Jan 30, 2020",
-              duration: "3 days",
-              price: "\$400.00",
-              likes: "1247 likes",
-              isFavorite: false,
-              imageUrl: "img/scene/1.png",
-            ),
-            SizedBox(height: 20),
-            _TourCard(
-              title: "Melbourne - Sydney",
-              date: "Jan 30, 2020",
-              duration: "3 days",
-              price: "\$600.00",
-              likes: "1247 likes",
-              isFavorite: true,
-              imageUrl: "img/scene/2.png",
-            ),
-            SizedBox(height: 20),
-            _TourCard(
-              title: "Hanoi - Ha Long Bay",
-              date: "Jan 30, 2020",
-              duration: "3 days",
-              price: "\$300.00",
-              likes: "1247 likes",
-              isFavorite: false,
-              imageUrl: "img/scene/3.png",
-            ),
-            SizedBox(height: 30),
-          ],
-        ),
+        if (isLoading)
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+        else if (tours.isEmpty)
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No tours found")))
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: tours.length,
+            itemBuilder: (context, index) {
+              final tour = tours[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: _TourCard(
+                  title: tour['title'] ?? 'Tour',
+                  date: tour['date'] ?? 'N/A',
+                  duration: tour['duration'] ?? 'N/A',
+                  price: "\$${tour['price']?.toStringAsFixed(2) ?? '0.00'}",
+                  likes: "${tour['likes'] ?? 0} likes",
+                  isFavorite: false,
+                  imageUrl: tour['imageUrl'] ?? 'img/scene/1.png',
+                ),
+              );
+            },
+          ),
+        const SizedBox(height: 10),
       ],
     );
   }
@@ -107,7 +124,7 @@ class _TourCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -123,12 +140,24 @@ class _TourCard extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),
                 ),
-                child: Image.asset(
-                  imageUrl,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                child: imageUrl.startsWith('http') 
+                  ? Image.network(
+                      imageUrl,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      imageUrl,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 200,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                      ),
+                    ),
               ),
               // Top Right Bookmark
               Positioned(
@@ -180,12 +209,15 @@ class _TourCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Icon(
@@ -249,3 +281,4 @@ class _TourCard extends StatelessWidget {
     );
   }
 }
+
