@@ -217,6 +217,28 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0.0),
   );
+  static const VerificationMeta _activityTitleMeta = const VerificationMeta(
+    'activityTitle',
+  );
+  @override
+  late final GeneratedColumn<String> activityTitle = GeneratedColumn<String>(
+    'activity_title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _activityImageUrlMeta = const VerificationMeta(
+    'activityImageUrl',
+  );
+  @override
+  late final GeneratedColumn<String> activityImageUrl = GeneratedColumn<String>(
+    'activity_image_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -238,6 +260,8 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     videoIntroUrl,
     reviewCount,
     rating,
+    activityTitle,
+    activityImageUrl,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -384,6 +408,24 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta),
       );
     }
+    if (data.containsKey('activity_title')) {
+      context.handle(
+        _activityTitleMeta,
+        activityTitle.isAcceptableOrUnknown(
+          data['activity_title']!,
+          _activityTitleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('activity_image_url')) {
+      context.handle(
+        _activityImageUrlMeta,
+        activityImageUrl.isAcceptableOrUnknown(
+          data['activity_image_url']!,
+          _activityImageUrlMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -469,6 +511,14 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.double,
         data['${effectivePrefix}rating'],
       )!,
+      activityTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}activity_title'],
+      ),
+      activityImageUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}activity_image_url'],
+      ),
     );
   }
 
@@ -498,6 +548,8 @@ class User extends DataClass implements Insertable<User> {
   final String? videoIntroUrl;
   final int reviewCount;
   final double rating;
+  final String? activityTitle;
+  final String? activityImageUrl;
   const User({
     required this.id,
     required this.username,
@@ -518,6 +570,8 @@ class User extends DataClass implements Insertable<User> {
     this.videoIntroUrl,
     required this.reviewCount,
     required this.rating,
+    this.activityTitle,
+    this.activityImageUrl,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -567,6 +621,12 @@ class User extends DataClass implements Insertable<User> {
     }
     map['review_count'] = Variable<int>(reviewCount);
     map['rating'] = Variable<double>(rating);
+    if (!nullToAbsent || activityTitle != null) {
+      map['activity_title'] = Variable<String>(activityTitle);
+    }
+    if (!nullToAbsent || activityImageUrl != null) {
+      map['activity_image_url'] = Variable<String>(activityImageUrl);
+    }
     return map;
   }
 
@@ -613,6 +673,12 @@ class User extends DataClass implements Insertable<User> {
           : Value(videoIntroUrl),
       reviewCount: Value(reviewCount),
       rating: Value(rating),
+      activityTitle: activityTitle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activityTitle),
+      activityImageUrl: activityImageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activityImageUrl),
     );
   }
 
@@ -641,6 +707,8 @@ class User extends DataClass implements Insertable<User> {
       videoIntroUrl: serializer.fromJson<String?>(json['videoIntroUrl']),
       reviewCount: serializer.fromJson<int>(json['reviewCount']),
       rating: serializer.fromJson<double>(json['rating']),
+      activityTitle: serializer.fromJson<String?>(json['activityTitle']),
+      activityImageUrl: serializer.fromJson<String?>(json['activityImageUrl']),
     );
   }
   @override
@@ -666,6 +734,8 @@ class User extends DataClass implements Insertable<User> {
       'videoIntroUrl': serializer.toJson<String?>(videoIntroUrl),
       'reviewCount': serializer.toJson<int>(reviewCount),
       'rating': serializer.toJson<double>(rating),
+      'activityTitle': serializer.toJson<String?>(activityTitle),
+      'activityImageUrl': serializer.toJson<String?>(activityImageUrl),
     };
   }
 
@@ -689,6 +759,8 @@ class User extends DataClass implements Insertable<User> {
     Value<String?> videoIntroUrl = const Value.absent(),
     int? reviewCount,
     double? rating,
+    Value<String?> activityTitle = const Value.absent(),
+    Value<String?> activityImageUrl = const Value.absent(),
   }) => User(
     id: id ?? this.id,
     username: username ?? this.username,
@@ -717,6 +789,12 @@ class User extends DataClass implements Insertable<User> {
         : this.videoIntroUrl,
     reviewCount: reviewCount ?? this.reviewCount,
     rating: rating ?? this.rating,
+    activityTitle: activityTitle.present
+        ? activityTitle.value
+        : this.activityTitle,
+    activityImageUrl: activityImageUrl.present
+        ? activityImageUrl.value
+        : this.activityImageUrl,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -751,6 +829,12 @@ class User extends DataClass implements Insertable<User> {
           ? data.reviewCount.value
           : this.reviewCount,
       rating: data.rating.present ? data.rating.value : this.rating,
+      activityTitle: data.activityTitle.present
+          ? data.activityTitle.value
+          : this.activityTitle,
+      activityImageUrl: data.activityImageUrl.present
+          ? data.activityImageUrl.value
+          : this.activityImageUrl,
     );
   }
 
@@ -775,13 +859,15 @@ class User extends DataClass implements Insertable<User> {
           ..write('bio: $bio, ')
           ..write('videoIntroUrl: $videoIntroUrl, ')
           ..write('reviewCount: $reviewCount, ')
-          ..write('rating: $rating')
+          ..write('rating: $rating, ')
+          ..write('activityTitle: $activityTitle, ')
+          ..write('activityImageUrl: $activityImageUrl')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     username,
     passwordHash,
@@ -801,7 +887,9 @@ class User extends DataClass implements Insertable<User> {
     videoIntroUrl,
     reviewCount,
     rating,
-  );
+    activityTitle,
+    activityImageUrl,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -824,7 +912,9 @@ class User extends DataClass implements Insertable<User> {
           other.bio == this.bio &&
           other.videoIntroUrl == this.videoIntroUrl &&
           other.reviewCount == this.reviewCount &&
-          other.rating == this.rating);
+          other.rating == this.rating &&
+          other.activityTitle == this.activityTitle &&
+          other.activityImageUrl == this.activityImageUrl);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
@@ -847,6 +937,8 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String?> videoIntroUrl;
   final Value<int> reviewCount;
   final Value<double> rating;
+  final Value<String?> activityTitle;
+  final Value<String?> activityImageUrl;
   const UsersCompanion({
     this.id = const Value.absent(),
     this.username = const Value.absent(),
@@ -867,6 +959,8 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.videoIntroUrl = const Value.absent(),
     this.reviewCount = const Value.absent(),
     this.rating = const Value.absent(),
+    this.activityTitle = const Value.absent(),
+    this.activityImageUrl = const Value.absent(),
   });
   UsersCompanion.insert({
     this.id = const Value.absent(),
@@ -888,6 +982,8 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.videoIntroUrl = const Value.absent(),
     this.reviewCount = const Value.absent(),
     this.rating = const Value.absent(),
+    this.activityTitle = const Value.absent(),
+    this.activityImageUrl = const Value.absent(),
   }) : username = Value(username),
        passwordHash = Value(passwordHash);
   static Insertable<User> custom({
@@ -910,6 +1006,8 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<String>? videoIntroUrl,
     Expression<int>? reviewCount,
     Expression<double>? rating,
+    Expression<String>? activityTitle,
+    Expression<String>? activityImageUrl,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -931,6 +1029,8 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (videoIntroUrl != null) 'video_intro_url': videoIntroUrl,
       if (reviewCount != null) 'review_count': reviewCount,
       if (rating != null) 'rating': rating,
+      if (activityTitle != null) 'activity_title': activityTitle,
+      if (activityImageUrl != null) 'activity_image_url': activityImageUrl,
     });
   }
 
@@ -954,6 +1054,8 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<String?>? videoIntroUrl,
     Value<int>? reviewCount,
     Value<double>? rating,
+    Value<String?>? activityTitle,
+    Value<String?>? activityImageUrl,
   }) {
     return UsersCompanion(
       id: id ?? this.id,
@@ -975,6 +1077,8 @@ class UsersCompanion extends UpdateCompanion<User> {
       videoIntroUrl: videoIntroUrl ?? this.videoIntroUrl,
       reviewCount: reviewCount ?? this.reviewCount,
       rating: rating ?? this.rating,
+      activityTitle: activityTitle ?? this.activityTitle,
+      activityImageUrl: activityImageUrl ?? this.activityImageUrl,
     );
   }
 
@@ -1038,6 +1142,12 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (rating.present) {
       map['rating'] = Variable<double>(rating.value);
     }
+    if (activityTitle.present) {
+      map['activity_title'] = Variable<String>(activityTitle.value);
+    }
+    if (activityImageUrl.present) {
+      map['activity_image_url'] = Variable<String>(activityImageUrl.value);
+    }
     return map;
   }
 
@@ -1062,7 +1172,9 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('bio: $bio, ')
           ..write('videoIntroUrl: $videoIntroUrl, ')
           ..write('reviewCount: $reviewCount, ')
-          ..write('rating: $rating')
+          ..write('rating: $rating, ')
+          ..write('activityTitle: $activityTitle, ')
+          ..write('activityImageUrl: $activityImageUrl')
           ..write(')'))
         .toString();
   }
@@ -2288,6 +2400,20 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _guideIdMeta = const VerificationMeta(
+    'guideId',
+  );
+  @override
+  late final GeneratedColumn<int> guideId = GeneratedColumn<int>(
+    'guide_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2298,6 +2424,7 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     endDate,
     status,
     imageUrl,
+    guideId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2367,6 +2494,12 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
       );
     }
+    if (data.containsKey('guide_id')) {
+      context.handle(
+        _guideIdMeta,
+        guideId.isAcceptableOrUnknown(data['guide_id']!, _guideIdMeta),
+      );
+    }
     return context;
   }
 
@@ -2408,6 +2541,10 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         DriftSqlType.string,
         data['${effectivePrefix}image_url'],
       ),
+      guideId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}guide_id'],
+      ),
     );
   }
 
@@ -2426,6 +2563,7 @@ class Trip extends DataClass implements Insertable<Trip> {
   final DateTime? endDate;
   final String status;
   final String? imageUrl;
+  final int? guideId;
   const Trip({
     required this.id,
     required this.userId,
@@ -2435,6 +2573,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     this.endDate,
     required this.status,
     this.imageUrl,
+    this.guideId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2452,6 +2591,9 @@ class Trip extends DataClass implements Insertable<Trip> {
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
+    }
+    if (!nullToAbsent || guideId != null) {
+      map['guide_id'] = Variable<int>(guideId);
     }
     return map;
   }
@@ -2472,6 +2614,9 @@ class Trip extends DataClass implements Insertable<Trip> {
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      guideId: guideId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(guideId),
     );
   }
 
@@ -2489,6 +2634,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       endDate: serializer.fromJson<DateTime?>(json['endDate']),
       status: serializer.fromJson<String>(json['status']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      guideId: serializer.fromJson<int?>(json['guideId']),
     );
   }
   @override
@@ -2503,6 +2649,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       'endDate': serializer.toJson<DateTime?>(endDate),
       'status': serializer.toJson<String>(status),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'guideId': serializer.toJson<int?>(guideId),
     };
   }
 
@@ -2515,6 +2662,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     Value<DateTime?> endDate = const Value.absent(),
     String? status,
     Value<String?> imageUrl = const Value.absent(),
+    Value<int?> guideId = const Value.absent(),
   }) => Trip(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -2524,6 +2672,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     endDate: endDate.present ? endDate.value : this.endDate,
     status: status ?? this.status,
     imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+    guideId: guideId.present ? guideId.value : this.guideId,
   );
   Trip copyWithCompanion(TripsCompanion data) {
     return Trip(
@@ -2537,6 +2686,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
       status: data.status.present ? data.status.value : this.status,
       imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      guideId: data.guideId.present ? data.guideId.value : this.guideId,
     );
   }
 
@@ -2550,7 +2700,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('status: $status, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('guideId: $guideId')
           ..write(')'))
         .toString();
   }
@@ -2565,6 +2716,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     endDate,
     status,
     imageUrl,
+    guideId,
   );
   @override
   bool operator ==(Object other) =>
@@ -2577,7 +2729,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           other.startDate == this.startDate &&
           other.endDate == this.endDate &&
           other.status == this.status &&
-          other.imageUrl == this.imageUrl);
+          other.imageUrl == this.imageUrl &&
+          other.guideId == this.guideId);
 }
 
 class TripsCompanion extends UpdateCompanion<Trip> {
@@ -2589,6 +2742,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<DateTime?> endDate;
   final Value<String> status;
   final Value<String?> imageUrl;
+  final Value<int?> guideId;
   const TripsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
@@ -2598,6 +2752,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.endDate = const Value.absent(),
     this.status = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.guideId = const Value.absent(),
   });
   TripsCompanion.insert({
     this.id = const Value.absent(),
@@ -2608,6 +2763,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.endDate = const Value.absent(),
     required String status,
     this.imageUrl = const Value.absent(),
+    this.guideId = const Value.absent(),
   }) : userId = Value(userId),
        title = Value(title),
        destination = Value(destination),
@@ -2621,6 +2777,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Expression<DateTime>? endDate,
     Expression<String>? status,
     Expression<String>? imageUrl,
+    Expression<int>? guideId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2631,6 +2788,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       if (endDate != null) 'end_date': endDate,
       if (status != null) 'status': status,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (guideId != null) 'guide_id': guideId,
     });
   }
 
@@ -2643,6 +2801,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Value<DateTime?>? endDate,
     Value<String>? status,
     Value<String?>? imageUrl,
+    Value<int?>? guideId,
   }) {
     return TripsCompanion(
       id: id ?? this.id,
@@ -2653,6 +2812,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       endDate: endDate ?? this.endDate,
       status: status ?? this.status,
       imageUrl: imageUrl ?? this.imageUrl,
+      guideId: guideId ?? this.guideId,
     );
   }
 
@@ -2683,6 +2843,9 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (guideId.present) {
+      map['guide_id'] = Variable<int>(guideId.value);
+    }
     return map;
   }
 
@@ -2696,7 +2859,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('status: $status, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('guideId: $guideId')
           ..write(')'))
         .toString();
   }
@@ -3167,6 +3331,36 @@ class $ToursTable extends Tours with TableInfo<$ToursTable, Tour> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
+    'date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationMeta = const VerificationMeta(
+    'duration',
+  );
+  @override
+  late final GeneratedColumn<String> duration = GeneratedColumn<String>(
+    'duration',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _likesMeta = const VerificationMeta('likes');
+  @override
+  late final GeneratedColumn<int> likes = GeneratedColumn<int>(
+    'likes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3175,6 +3369,9 @@ class $ToursTable extends Tours with TableInfo<$ToursTable, Tour> {
     price,
     rating,
     imageUrl,
+    date,
+    duration,
+    likes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3227,6 +3424,24 @@ class $ToursTable extends Tours with TableInfo<$ToursTable, Tour> {
         imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
       );
     }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    }
+    if (data.containsKey('duration')) {
+      context.handle(
+        _durationMeta,
+        duration.isAcceptableOrUnknown(data['duration']!, _durationMeta),
+      );
+    }
+    if (data.containsKey('likes')) {
+      context.handle(
+        _likesMeta,
+        likes.isAcceptableOrUnknown(data['likes']!, _likesMeta),
+      );
+    }
     return context;
   }
 
@@ -3260,6 +3475,18 @@ class $ToursTable extends Tours with TableInfo<$ToursTable, Tour> {
         DriftSqlType.string,
         data['${effectivePrefix}image_url'],
       ),
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date'],
+      ),
+      duration: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}duration'],
+      ),
+      likes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}likes'],
+      )!,
     );
   }
 
@@ -3276,6 +3503,9 @@ class Tour extends DataClass implements Insertable<Tour> {
   final double price;
   final double rating;
   final String? imageUrl;
+  final String? date;
+  final String? duration;
+  final int likes;
   const Tour({
     required this.id,
     required this.title,
@@ -3283,6 +3513,9 @@ class Tour extends DataClass implements Insertable<Tour> {
     required this.price,
     required this.rating,
     this.imageUrl,
+    this.date,
+    this.duration,
+    required this.likes,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3295,6 +3528,13 @@ class Tour extends DataClass implements Insertable<Tour> {
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
     }
+    if (!nullToAbsent || date != null) {
+      map['date'] = Variable<String>(date);
+    }
+    if (!nullToAbsent || duration != null) {
+      map['duration'] = Variable<String>(duration);
+    }
+    map['likes'] = Variable<int>(likes);
     return map;
   }
 
@@ -3308,6 +3548,11 @@ class Tour extends DataClass implements Insertable<Tour> {
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      date: date == null && nullToAbsent ? const Value.absent() : Value(date),
+      duration: duration == null && nullToAbsent
+          ? const Value.absent()
+          : Value(duration),
+      likes: Value(likes),
     );
   }
 
@@ -3323,6 +3568,9 @@ class Tour extends DataClass implements Insertable<Tour> {
       price: serializer.fromJson<double>(json['price']),
       rating: serializer.fromJson<double>(json['rating']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      date: serializer.fromJson<String?>(json['date']),
+      duration: serializer.fromJson<String?>(json['duration']),
+      likes: serializer.fromJson<int>(json['likes']),
     );
   }
   @override
@@ -3335,6 +3583,9 @@ class Tour extends DataClass implements Insertable<Tour> {
       'price': serializer.toJson<double>(price),
       'rating': serializer.toJson<double>(rating),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'date': serializer.toJson<String?>(date),
+      'duration': serializer.toJson<String?>(duration),
+      'likes': serializer.toJson<int>(likes),
     };
   }
 
@@ -3345,6 +3596,9 @@ class Tour extends DataClass implements Insertable<Tour> {
     double? price,
     double? rating,
     Value<String?> imageUrl = const Value.absent(),
+    Value<String?> date = const Value.absent(),
+    Value<String?> duration = const Value.absent(),
+    int? likes,
   }) => Tour(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -3352,6 +3606,9 @@ class Tour extends DataClass implements Insertable<Tour> {
     price: price ?? this.price,
     rating: rating ?? this.rating,
     imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+    date: date.present ? date.value : this.date,
+    duration: duration.present ? duration.value : this.duration,
+    likes: likes ?? this.likes,
   );
   Tour copyWithCompanion(ToursCompanion data) {
     return Tour(
@@ -3361,6 +3618,9 @@ class Tour extends DataClass implements Insertable<Tour> {
       price: data.price.present ? data.price.value : this.price,
       rating: data.rating.present ? data.rating.value : this.rating,
       imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      date: data.date.present ? data.date.value : this.date,
+      duration: data.duration.present ? data.duration.value : this.duration,
+      likes: data.likes.present ? data.likes.value : this.likes,
     );
   }
 
@@ -3372,13 +3632,26 @@ class Tour extends DataClass implements Insertable<Tour> {
           ..write('location: $location, ')
           ..write('price: $price, ')
           ..write('rating: $rating, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('date: $date, ')
+          ..write('duration: $duration, ')
+          ..write('likes: $likes')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, location, price, rating, imageUrl);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    location,
+    price,
+    rating,
+    imageUrl,
+    date,
+    duration,
+    likes,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3388,7 +3661,10 @@ class Tour extends DataClass implements Insertable<Tour> {
           other.location == this.location &&
           other.price == this.price &&
           other.rating == this.rating &&
-          other.imageUrl == this.imageUrl);
+          other.imageUrl == this.imageUrl &&
+          other.date == this.date &&
+          other.duration == this.duration &&
+          other.likes == this.likes);
 }
 
 class ToursCompanion extends UpdateCompanion<Tour> {
@@ -3398,6 +3674,9 @@ class ToursCompanion extends UpdateCompanion<Tour> {
   final Value<double> price;
   final Value<double> rating;
   final Value<String?> imageUrl;
+  final Value<String?> date;
+  final Value<String?> duration;
+  final Value<int> likes;
   const ToursCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -3405,6 +3684,9 @@ class ToursCompanion extends UpdateCompanion<Tour> {
     this.price = const Value.absent(),
     this.rating = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.date = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.likes = const Value.absent(),
   });
   ToursCompanion.insert({
     this.id = const Value.absent(),
@@ -3413,6 +3695,9 @@ class ToursCompanion extends UpdateCompanion<Tour> {
     required double price,
     this.rating = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.date = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.likes = const Value.absent(),
   }) : title = Value(title),
        location = Value(location),
        price = Value(price);
@@ -3423,6 +3708,9 @@ class ToursCompanion extends UpdateCompanion<Tour> {
     Expression<double>? price,
     Expression<double>? rating,
     Expression<String>? imageUrl,
+    Expression<String>? date,
+    Expression<String>? duration,
+    Expression<int>? likes,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3431,6 +3719,9 @@ class ToursCompanion extends UpdateCompanion<Tour> {
       if (price != null) 'price': price,
       if (rating != null) 'rating': rating,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (date != null) 'date': date,
+      if (duration != null) 'duration': duration,
+      if (likes != null) 'likes': likes,
     });
   }
 
@@ -3441,6 +3732,9 @@ class ToursCompanion extends UpdateCompanion<Tour> {
     Value<double>? price,
     Value<double>? rating,
     Value<String?>? imageUrl,
+    Value<String?>? date,
+    Value<String?>? duration,
+    Value<int>? likes,
   }) {
     return ToursCompanion(
       id: id ?? this.id,
@@ -3449,6 +3743,9 @@ class ToursCompanion extends UpdateCompanion<Tour> {
       price: price ?? this.price,
       rating: rating ?? this.rating,
       imageUrl: imageUrl ?? this.imageUrl,
+      date: date ?? this.date,
+      duration: duration ?? this.duration,
+      likes: likes ?? this.likes,
     );
   }
 
@@ -3473,6 +3770,15 @@ class ToursCompanion extends UpdateCompanion<Tour> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (date.present) {
+      map['date'] = Variable<String>(date.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<String>(duration.value);
+    }
+    if (likes.present) {
+      map['likes'] = Variable<int>(likes.value);
+    }
     return map;
   }
 
@@ -3484,7 +3790,10 @@ class ToursCompanion extends UpdateCompanion<Tour> {
           ..write('location: $location, ')
           ..write('price: $price, ')
           ..write('rating: $rating, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('date: $date, ')
+          ..write('duration: $duration, ')
+          ..write('likes: $likes')
           ..write(')'))
         .toString();
   }
@@ -3559,6 +3868,20 @@ class $ExperiencesTable extends Experiences
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _guideIdMeta = const VerificationMeta(
+    'guideId',
+  );
+  @override
+  late final GeneratedColumn<int> guideId = GeneratedColumn<int>(
+    'guide_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3567,6 +3890,7 @@ class $ExperiencesTable extends Experiences
     price,
     rating,
     imageUrl,
+    guideId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3619,6 +3943,14 @@ class $ExperiencesTable extends Experiences
         imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
       );
     }
+    if (data.containsKey('guide_id')) {
+      context.handle(
+        _guideIdMeta,
+        guideId.isAcceptableOrUnknown(data['guide_id']!, _guideIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_guideIdMeta);
+    }
     return context;
   }
 
@@ -3652,6 +3984,10 @@ class $ExperiencesTable extends Experiences
         DriftSqlType.string,
         data['${effectivePrefix}image_url'],
       ),
+      guideId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}guide_id'],
+      )!,
     );
   }
 
@@ -3668,6 +4004,7 @@ class Experience extends DataClass implements Insertable<Experience> {
   final double price;
   final double rating;
   final String? imageUrl;
+  final int guideId;
   const Experience({
     required this.id,
     required this.title,
@@ -3675,6 +4012,7 @@ class Experience extends DataClass implements Insertable<Experience> {
     required this.price,
     required this.rating,
     this.imageUrl,
+    required this.guideId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3687,6 +4025,7 @@ class Experience extends DataClass implements Insertable<Experience> {
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
     }
+    map['guide_id'] = Variable<int>(guideId);
     return map;
   }
 
@@ -3700,6 +4039,7 @@ class Experience extends DataClass implements Insertable<Experience> {
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      guideId: Value(guideId),
     );
   }
 
@@ -3715,6 +4055,7 @@ class Experience extends DataClass implements Insertable<Experience> {
       price: serializer.fromJson<double>(json['price']),
       rating: serializer.fromJson<double>(json['rating']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      guideId: serializer.fromJson<int>(json['guideId']),
     );
   }
   @override
@@ -3727,6 +4068,7 @@ class Experience extends DataClass implements Insertable<Experience> {
       'price': serializer.toJson<double>(price),
       'rating': serializer.toJson<double>(rating),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'guideId': serializer.toJson<int>(guideId),
     };
   }
 
@@ -3737,6 +4079,7 @@ class Experience extends DataClass implements Insertable<Experience> {
     double? price,
     double? rating,
     Value<String?> imageUrl = const Value.absent(),
+    int? guideId,
   }) => Experience(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -3744,6 +4087,7 @@ class Experience extends DataClass implements Insertable<Experience> {
     price: price ?? this.price,
     rating: rating ?? this.rating,
     imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+    guideId: guideId ?? this.guideId,
   );
   Experience copyWithCompanion(ExperiencesCompanion data) {
     return Experience(
@@ -3753,6 +4097,7 @@ class Experience extends DataClass implements Insertable<Experience> {
       price: data.price.present ? data.price.value : this.price,
       rating: data.rating.present ? data.rating.value : this.rating,
       imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      guideId: data.guideId.present ? data.guideId.value : this.guideId,
     );
   }
 
@@ -3764,13 +4109,15 @@ class Experience extends DataClass implements Insertable<Experience> {
           ..write('location: $location, ')
           ..write('price: $price, ')
           ..write('rating: $rating, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('guideId: $guideId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, location, price, rating, imageUrl);
+  int get hashCode =>
+      Object.hash(id, title, location, price, rating, imageUrl, guideId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3780,7 +4127,8 @@ class Experience extends DataClass implements Insertable<Experience> {
           other.location == this.location &&
           other.price == this.price &&
           other.rating == this.rating &&
-          other.imageUrl == this.imageUrl);
+          other.imageUrl == this.imageUrl &&
+          other.guideId == this.guideId);
 }
 
 class ExperiencesCompanion extends UpdateCompanion<Experience> {
@@ -3790,6 +4138,7 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
   final Value<double> price;
   final Value<double> rating;
   final Value<String?> imageUrl;
+  final Value<int> guideId;
   const ExperiencesCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -3797,6 +4146,7 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
     this.price = const Value.absent(),
     this.rating = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.guideId = const Value.absent(),
   });
   ExperiencesCompanion.insert({
     this.id = const Value.absent(),
@@ -3805,9 +4155,11 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
     required double price,
     this.rating = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    required int guideId,
   }) : title = Value(title),
        location = Value(location),
-       price = Value(price);
+       price = Value(price),
+       guideId = Value(guideId);
   static Insertable<Experience> custom({
     Expression<int>? id,
     Expression<String>? title,
@@ -3815,6 +4167,7 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
     Expression<double>? price,
     Expression<double>? rating,
     Expression<String>? imageUrl,
+    Expression<int>? guideId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3823,6 +4176,7 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
       if (price != null) 'price': price,
       if (rating != null) 'rating': rating,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (guideId != null) 'guide_id': guideId,
     });
   }
 
@@ -3833,6 +4187,7 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
     Value<double>? price,
     Value<double>? rating,
     Value<String?>? imageUrl,
+    Value<int>? guideId,
   }) {
     return ExperiencesCompanion(
       id: id ?? this.id,
@@ -3841,6 +4196,7 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
       price: price ?? this.price,
       rating: rating ?? this.rating,
       imageUrl: imageUrl ?? this.imageUrl,
+      guideId: guideId ?? this.guideId,
     );
   }
 
@@ -3865,6 +4221,9 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (guideId.present) {
+      map['guide_id'] = Variable<int>(guideId.value);
+    }
     return map;
   }
 
@@ -3876,7 +4235,8 @@ class ExperiencesCompanion extends UpdateCompanion<Experience> {
           ..write('location: $location, ')
           ..write('price: $price, ')
           ..write('rating: $rating, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('guideId: $guideId')
           ..write(')'))
         .toString();
   }
@@ -4499,6 +4859,296 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   }
 }
 
+class $NewsTable extends News with TableInfo<$NewsTable, New> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NewsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _imageUrlMeta = const VerificationMeta(
+    'imageUrl',
+  );
+  @override
+  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
+    'image_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, title, date, imageUrl];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'news';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<New> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('image_url')) {
+      context.handle(
+        _imageUrlMeta,
+        imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_imageUrlMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  New map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return New(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date'],
+      )!,
+      imageUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image_url'],
+      )!,
+    );
+  }
+
+  @override
+  $NewsTable createAlias(String alias) {
+    return $NewsTable(attachedDatabase, alias);
+  }
+}
+
+class New extends DataClass implements Insertable<New> {
+  final int id;
+  final String title;
+  final String date;
+  final String imageUrl;
+  const New({
+    required this.id,
+    required this.title,
+    required this.date,
+    required this.imageUrl,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['date'] = Variable<String>(date);
+    map['image_url'] = Variable<String>(imageUrl);
+    return map;
+  }
+
+  NewsCompanion toCompanion(bool nullToAbsent) {
+    return NewsCompanion(
+      id: Value(id),
+      title: Value(title),
+      date: Value(date),
+      imageUrl: Value(imageUrl),
+    );
+  }
+
+  factory New.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return New(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      date: serializer.fromJson<String>(json['date']),
+      imageUrl: serializer.fromJson<String>(json['imageUrl']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'date': serializer.toJson<String>(date),
+      'imageUrl': serializer.toJson<String>(imageUrl),
+    };
+  }
+
+  New copyWith({int? id, String? title, String? date, String? imageUrl}) => New(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    date: date ?? this.date,
+    imageUrl: imageUrl ?? this.imageUrl,
+  );
+  New copyWithCompanion(NewsCompanion data) {
+    return New(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      date: data.date.present ? data.date.value : this.date,
+      imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('New(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('date: $date, ')
+          ..write('imageUrl: $imageUrl')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, title, date, imageUrl);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is New &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.date == this.date &&
+          other.imageUrl == this.imageUrl);
+}
+
+class NewsCompanion extends UpdateCompanion<New> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<String> date;
+  final Value<String> imageUrl;
+  const NewsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.date = const Value.absent(),
+    this.imageUrl = const Value.absent(),
+  });
+  NewsCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+    required String date,
+    required String imageUrl,
+  }) : title = Value(title),
+       date = Value(date),
+       imageUrl = Value(imageUrl);
+  static Insertable<New> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<String>? date,
+    Expression<String>? imageUrl,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (date != null) 'date': date,
+      if (imageUrl != null) 'image_url': imageUrl,
+    });
+  }
+
+  NewsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? title,
+    Value<String>? date,
+    Value<String>? imageUrl,
+  }) {
+    return NewsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      date: date ?? this.date,
+      imageUrl: imageUrl ?? this.imageUrl,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<String>(date.value);
+    }
+    if (imageUrl.present) {
+      map['image_url'] = Variable<String>(imageUrl.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NewsCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('date: $date, ')
+          ..write('imageUrl: $imageUrl')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4513,6 +5163,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ExperiencesTable experiences = $ExperiencesTable(this);
   late final $ConversationsTable conversations = $ConversationsTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
+  late final $NewsTable news = $NewsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4529,6 +5180,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     experiences,
     conversations,
     messages,
+    news,
   ];
 }
 
@@ -4553,6 +5205,8 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<String?> videoIntroUrl,
       Value<int> reviewCount,
       Value<double> rating,
+      Value<String?> activityTitle,
+      Value<String?> activityImageUrl,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
     UsersCompanion Function({
@@ -4575,6 +5229,8 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String?> videoIntroUrl,
       Value<int> reviewCount,
       Value<double> rating,
+      Value<String?> activityTitle,
+      Value<String?> activityImageUrl,
     });
 
 final class $$UsersTableReferences
@@ -4636,20 +5292,19 @@ final class $$UsersTableReferences
     );
   }
 
-  static MultiTypedResultKey<$TripsTable, List<Trip>> _tripsRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.trips,
-    aliasName: $_aliasNameGenerator(db.users.id, db.trips.userId),
+  static MultiTypedResultKey<$ExperiencesTable, List<Experience>>
+  _experiencesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.experiences,
+    aliasName: $_aliasNameGenerator(db.users.id, db.experiences.guideId),
   );
 
-  $$TripsTableProcessedTableManager get tripsRefs {
-    final manager = $$TripsTableTableManager(
+  $$ExperiencesTableProcessedTableManager get experiencesRefs {
+    final manager = $$ExperiencesTableTableManager(
       $_db,
-      $_db.trips,
-    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
+      $_db.experiences,
+    ).filter((f) => f.guideId.id.sqlEquals($_itemColumn<int>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_tripsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(_experiencesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4819,6 +5474,16 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get activityTitle => $composableBuilder(
+    column: $table.activityTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get activityImageUrl => $composableBuilder(
+    column: $table.activityImageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> userLanguagesRefs(
     Expression<bool> Function($$UserLanguagesTableFilterComposer f) f,
   ) {
@@ -4894,22 +5559,22 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     return f(composer);
   }
 
-  Expression<bool> tripsRefs(
-    Expression<bool> Function($$TripsTableFilterComposer f) f,
+  Expression<bool> experiencesRefs(
+    Expression<bool> Function($$ExperiencesTableFilterComposer f) f,
   ) {
-    final $$TripsTableFilterComposer composer = $composerBuilder(
+    final $$ExperiencesTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
-      referencedTable: $db.trips,
-      getReferencedColumn: (t) => t.userId,
+      referencedTable: $db.experiences,
+      getReferencedColumn: (t) => t.guideId,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$TripsTableFilterComposer(
+          }) => $$ExperiencesTableFilterComposer(
             $db: $db,
-            $table: $db.trips,
+            $table: $db.experiences,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5098,6 +5763,16 @@ class $$UsersTableOrderingComposer
     column: $table.rating,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get activityTitle => $composableBuilder(
+    column: $table.activityTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get activityImageUrl => $composableBuilder(
+    column: $table.activityImageUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UsersTableAnnotationComposer
@@ -5178,6 +5853,16 @@ class $$UsersTableAnnotationComposer
   GeneratedColumn<double> get rating =>
       $composableBuilder(column: $table.rating, builder: (column) => column);
 
+  GeneratedColumn<String> get activityTitle => $composableBuilder(
+    column: $table.activityTitle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get activityImageUrl => $composableBuilder(
+    column: $table.activityImageUrl,
+    builder: (column) => column,
+  );
+
   Expression<T> userLanguagesRefs<T extends Object>(
     Expression<T> Function($$UserLanguagesTableAnnotationComposer a) f,
   ) {
@@ -5253,22 +5938,22 @@ class $$UsersTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> tripsRefs<T extends Object>(
-    Expression<T> Function($$TripsTableAnnotationComposer a) f,
+  Expression<T> experiencesRefs<T extends Object>(
+    Expression<T> Function($$ExperiencesTableAnnotationComposer a) f,
   ) {
-    final $$TripsTableAnnotationComposer composer = $composerBuilder(
+    final $$ExperiencesTableAnnotationComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
-      referencedTable: $db.trips,
-      getReferencedColumn: (t) => t.userId,
+      referencedTable: $db.experiences,
+      getReferencedColumn: (t) => t.guideId,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$TripsTableAnnotationComposer(
+          }) => $$ExperiencesTableAnnotationComposer(
             $db: $db,
-            $table: $db.trips,
+            $table: $db.experiences,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5371,7 +6056,7 @@ class $$UsersTableTableManager
             bool userLanguagesRefs,
             bool feesRefs,
             bool availabilityRefs,
-            bool tripsRefs,
+            bool experiencesRefs,
             bool startedConversations,
             bool receivedConversations,
             bool messagesRefs,
@@ -5409,6 +6094,8 @@ class $$UsersTableTableManager
                 Value<String?> videoIntroUrl = const Value.absent(),
                 Value<int> reviewCount = const Value.absent(),
                 Value<double> rating = const Value.absent(),
+                Value<String?> activityTitle = const Value.absent(),
+                Value<String?> activityImageUrl = const Value.absent(),
               }) => UsersCompanion(
                 id: id,
                 username: username,
@@ -5429,6 +6116,8 @@ class $$UsersTableTableManager
                 videoIntroUrl: videoIntroUrl,
                 reviewCount: reviewCount,
                 rating: rating,
+                activityTitle: activityTitle,
+                activityImageUrl: activityImageUrl,
               ),
           createCompanionCallback:
               ({
@@ -5451,6 +6140,8 @@ class $$UsersTableTableManager
                 Value<String?> videoIntroUrl = const Value.absent(),
                 Value<int> reviewCount = const Value.absent(),
                 Value<double> rating = const Value.absent(),
+                Value<String?> activityTitle = const Value.absent(),
+                Value<String?> activityImageUrl = const Value.absent(),
               }) => UsersCompanion.insert(
                 id: id,
                 username: username,
@@ -5471,6 +6162,8 @@ class $$UsersTableTableManager
                 videoIntroUrl: videoIntroUrl,
                 reviewCount: reviewCount,
                 rating: rating,
+                activityTitle: activityTitle,
+                activityImageUrl: activityImageUrl,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -5483,7 +6176,7 @@ class $$UsersTableTableManager
                 userLanguagesRefs = false,
                 feesRefs = false,
                 availabilityRefs = false,
-                tripsRefs = false,
+                experiencesRefs = false,
                 startedConversations = false,
                 receivedConversations = false,
                 messagesRefs = false,
@@ -5494,7 +6187,7 @@ class $$UsersTableTableManager
                     if (userLanguagesRefs) db.userLanguages,
                     if (feesRefs) db.fees,
                     if (availabilityRefs) db.availability,
-                    if (tripsRefs) db.trips,
+                    if (experiencesRefs) db.experiences,
                     if (startedConversations) db.conversations,
                     if (receivedConversations) db.conversations,
                     if (messagesRefs) db.messages,
@@ -5557,16 +6250,24 @@ class $$UsersTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (tripsRefs)
-                        await $_getPrefetchedData<User, $UsersTable, Trip>(
+                      if (experiencesRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          Experience
+                        >(
                           currentTable: table,
                           referencedTable: $$UsersTableReferences
-                              ._tripsRefsTable(db),
+                              ._experiencesRefsTable(db),
                           managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(db, table, p0).tripsRefs,
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).experiencesRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
-                                (e) => e.userId == item.id,
+                                (e) => e.guideId == item.id,
                               ),
                           typedResults: items,
                         ),
@@ -5653,7 +6354,7 @@ typedef $$UsersTableProcessedTableManager =
         bool userLanguagesRefs,
         bool feesRefs,
         bool availabilityRefs,
-        bool tripsRefs,
+        bool experiencesRefs,
         bool startedConversations,
         bool receivedConversations,
         bool messagesRefs,
@@ -6875,6 +7576,7 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<DateTime?> endDate,
       required String status,
       Value<String?> imageUrl,
+      Value<int?> guideId,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
     TripsCompanion Function({
@@ -6886,6 +7588,7 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<DateTime?> endDate,
       Value<String> status,
       Value<String?> imageUrl,
+      Value<int?> guideId,
     });
 
 final class $$TripsTableReferences
@@ -6903,6 +7606,23 @@ final class $$TripsTableReferences
       $_db.users,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _guideIdTable(_$AppDatabase db) =>
+      db.users.createAlias($_aliasNameGenerator(db.trips.guideId, db.users.id));
+
+  $$UsersTableProcessedTableManager? get guideId {
+    final $_column = $_itemColumn<int>('guide_id');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_guideIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -6957,6 +7677,29 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
     final $$UsersTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get guideId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.guideId,
       referencedTable: $db.users,
       getReferencedColumn: (t) => t.id,
       builder:
@@ -7043,6 +7786,29 @@ class $$TripsTableOrderingComposer
     );
     return composer;
   }
+
+  $$UsersTableOrderingComposer get guideId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.guideId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TripsTableAnnotationComposer
@@ -7099,6 +7865,29 @@ class $$TripsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$UsersTableAnnotationComposer get guideId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.guideId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TripsTableTableManager
@@ -7114,7 +7903,7 @@ class $$TripsTableTableManager
           $$TripsTableUpdateCompanionBuilder,
           (Trip, $$TripsTableReferences),
           Trip,
-          PrefetchHooks Function({bool userId})
+          PrefetchHooks Function({bool userId, bool guideId})
         > {
   $$TripsTableTableManager(_$AppDatabase db, $TripsTable table)
     : super(
@@ -7137,6 +7926,7 @@ class $$TripsTableTableManager
                 Value<DateTime?> endDate = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<int?> guideId = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
                 userId: userId,
@@ -7146,6 +7936,7 @@ class $$TripsTableTableManager
                 endDate: endDate,
                 status: status,
                 imageUrl: imageUrl,
+                guideId: guideId,
               ),
           createCompanionCallback:
               ({
@@ -7157,6 +7948,7 @@ class $$TripsTableTableManager
                 Value<DateTime?> endDate = const Value.absent(),
                 required String status,
                 Value<String?> imageUrl = const Value.absent(),
+                Value<int?> guideId = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
                 userId: userId,
@@ -7166,6 +7958,7 @@ class $$TripsTableTableManager
                 endDate: endDate,
                 status: status,
                 imageUrl: imageUrl,
+                guideId: guideId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -7173,7 +7966,7 @@ class $$TripsTableTableManager
                     (e.readTable(table), $$TripsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({userId = false}) {
+          prefetchHooksCallback: ({userId = false, guideId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -7206,6 +7999,19 @@ class $$TripsTableTableManager
                               )
                               as T;
                     }
+                    if (guideId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.guideId,
+                                referencedTable: $$TripsTableReferences
+                                    ._guideIdTable(db),
+                                referencedColumn: $$TripsTableReferences
+                                    ._guideIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
 
                     return state;
                   },
@@ -7230,7 +8036,7 @@ typedef $$TripsTableProcessedTableManager =
       $$TripsTableUpdateCompanionBuilder,
       (Trip, $$TripsTableReferences),
       Trip,
-      PrefetchHooks Function({bool userId})
+      PrefetchHooks Function({bool userId, bool guideId})
     >;
 typedef $$GuidesTableCreateCompanionBuilder =
     GuidesCompanion Function({
@@ -7449,6 +8255,9 @@ typedef $$ToursTableCreateCompanionBuilder =
       required double price,
       Value<double> rating,
       Value<String?> imageUrl,
+      Value<String?> date,
+      Value<String?> duration,
+      Value<int> likes,
     });
 typedef $$ToursTableUpdateCompanionBuilder =
     ToursCompanion Function({
@@ -7458,6 +8267,9 @@ typedef $$ToursTableUpdateCompanionBuilder =
       Value<double> price,
       Value<double> rating,
       Value<String?> imageUrl,
+      Value<String?> date,
+      Value<String?> duration,
+      Value<int> likes,
     });
 
 class $$ToursTableFilterComposer extends Composer<_$AppDatabase, $ToursTable> {
@@ -7495,6 +8307,21 @@ class $$ToursTableFilterComposer extends Composer<_$AppDatabase, $ToursTable> {
 
   ColumnFilters<String> get imageUrl => $composableBuilder(
     column: $table.imageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get likes => $composableBuilder(
+    column: $table.likes,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -7537,6 +8364,21 @@ class $$ToursTableOrderingComposer
     column: $table.imageUrl,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get likes => $composableBuilder(
+    column: $table.likes,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ToursTableAnnotationComposer
@@ -7565,6 +8407,15 @@ class $$ToursTableAnnotationComposer
 
   GeneratedColumn<String> get imageUrl =>
       $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<int> get likes =>
+      $composableBuilder(column: $table.likes, builder: (column) => column);
 }
 
 class $$ToursTableTableManager
@@ -7601,6 +8452,9 @@ class $$ToursTableTableManager
                 Value<double> price = const Value.absent(),
                 Value<double> rating = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<String?> date = const Value.absent(),
+                Value<String?> duration = const Value.absent(),
+                Value<int> likes = const Value.absent(),
               }) => ToursCompanion(
                 id: id,
                 title: title,
@@ -7608,6 +8462,9 @@ class $$ToursTableTableManager
                 price: price,
                 rating: rating,
                 imageUrl: imageUrl,
+                date: date,
+                duration: duration,
+                likes: likes,
               ),
           createCompanionCallback:
               ({
@@ -7617,6 +8474,9 @@ class $$ToursTableTableManager
                 required double price,
                 Value<double> rating = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<String?> date = const Value.absent(),
+                Value<String?> duration = const Value.absent(),
+                Value<int> likes = const Value.absent(),
               }) => ToursCompanion.insert(
                 id: id,
                 title: title,
@@ -7624,6 +8484,9 @@ class $$ToursTableTableManager
                 price: price,
                 rating: rating,
                 imageUrl: imageUrl,
+                date: date,
+                duration: duration,
+                likes: likes,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -7655,6 +8518,7 @@ typedef $$ExperiencesTableCreateCompanionBuilder =
       required double price,
       Value<double> rating,
       Value<String?> imageUrl,
+      required int guideId,
     });
 typedef $$ExperiencesTableUpdateCompanionBuilder =
     ExperiencesCompanion Function({
@@ -7664,7 +8528,31 @@ typedef $$ExperiencesTableUpdateCompanionBuilder =
       Value<double> price,
       Value<double> rating,
       Value<String?> imageUrl,
+      Value<int> guideId,
     });
+
+final class $$ExperiencesTableReferences
+    extends BaseReferences<_$AppDatabase, $ExperiencesTable, Experience> {
+  $$ExperiencesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _guideIdTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.experiences.guideId, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager get guideId {
+    final $_column = $_itemColumn<int>('guide_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_guideIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$ExperiencesTableFilterComposer
     extends Composer<_$AppDatabase, $ExperiencesTable> {
@@ -7704,6 +8592,29 @@ class $$ExperiencesTableFilterComposer
     column: $table.imageUrl,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$UsersTableFilterComposer get guideId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.guideId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ExperiencesTableOrderingComposer
@@ -7744,6 +8655,29 @@ class $$ExperiencesTableOrderingComposer
     column: $table.imageUrl,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$UsersTableOrderingComposer get guideId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.guideId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ExperiencesTableAnnotationComposer
@@ -7772,6 +8706,29 @@ class $$ExperiencesTableAnnotationComposer
 
   GeneratedColumn<String> get imageUrl =>
       $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get guideId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.guideId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ExperiencesTableTableManager
@@ -7785,12 +8742,9 @@ class $$ExperiencesTableTableManager
           $$ExperiencesTableAnnotationComposer,
           $$ExperiencesTableCreateCompanionBuilder,
           $$ExperiencesTableUpdateCompanionBuilder,
-          (
-            Experience,
-            BaseReferences<_$AppDatabase, $ExperiencesTable, Experience>,
-          ),
+          (Experience, $$ExperiencesTableReferences),
           Experience,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool guideId})
         > {
   $$ExperiencesTableTableManager(_$AppDatabase db, $ExperiencesTable table)
     : super(
@@ -7811,6 +8765,7 @@ class $$ExperiencesTableTableManager
                 Value<double> price = const Value.absent(),
                 Value<double> rating = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<int> guideId = const Value.absent(),
               }) => ExperiencesCompanion(
                 id: id,
                 title: title,
@@ -7818,6 +8773,7 @@ class $$ExperiencesTableTableManager
                 price: price,
                 rating: rating,
                 imageUrl: imageUrl,
+                guideId: guideId,
               ),
           createCompanionCallback:
               ({
@@ -7827,6 +8783,7 @@ class $$ExperiencesTableTableManager
                 required double price,
                 Value<double> rating = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                required int guideId,
               }) => ExperiencesCompanion.insert(
                 id: id,
                 title: title,
@@ -7834,11 +8791,57 @@ class $$ExperiencesTableTableManager
                 price: price,
                 rating: rating,
                 imageUrl: imageUrl,
+                guideId: guideId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ExperiencesTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({guideId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (guideId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.guideId,
+                                referencedTable: $$ExperiencesTableReferences
+                                    ._guideIdTable(db),
+                                referencedColumn: $$ExperiencesTableReferences
+                                    ._guideIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -7853,12 +8856,9 @@ typedef $$ExperiencesTableProcessedTableManager =
       $$ExperiencesTableAnnotationComposer,
       $$ExperiencesTableCreateCompanionBuilder,
       $$ExperiencesTableUpdateCompanionBuilder,
-      (
-        Experience,
-        BaseReferences<_$AppDatabase, $ExperiencesTable, Experience>,
-      ),
+      (Experience, $$ExperiencesTableReferences),
       Experience,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool guideId})
     >;
 typedef $$ConversationsTableCreateCompanionBuilder =
     ConversationsCompanion Function({
@@ -8728,6 +9728,173 @@ typedef $$MessagesTableProcessedTableManager =
       Message,
       PrefetchHooks Function({bool conversationId, bool senderId})
     >;
+typedef $$NewsTableCreateCompanionBuilder =
+    NewsCompanion Function({
+      Value<int> id,
+      required String title,
+      required String date,
+      required String imageUrl,
+    });
+typedef $$NewsTableUpdateCompanionBuilder =
+    NewsCompanion Function({
+      Value<int> id,
+      Value<String> title,
+      Value<String> date,
+      Value<String> imageUrl,
+    });
+
+class $$NewsTableFilterComposer extends Composer<_$AppDatabase, $NewsTable> {
+  $$NewsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$NewsTableOrderingComposer extends Composer<_$AppDatabase, $NewsTable> {
+  $$NewsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$NewsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NewsTable> {
+  $$NewsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get imageUrl =>
+      $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+}
+
+class $$NewsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NewsTable,
+          New,
+          $$NewsTableFilterComposer,
+          $$NewsTableOrderingComposer,
+          $$NewsTableAnnotationComposer,
+          $$NewsTableCreateCompanionBuilder,
+          $$NewsTableUpdateCompanionBuilder,
+          (New, BaseReferences<_$AppDatabase, $NewsTable, New>),
+          New,
+          PrefetchHooks Function()
+        > {
+  $$NewsTableTableManager(_$AppDatabase db, $NewsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NewsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NewsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NewsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> date = const Value.absent(),
+                Value<String> imageUrl = const Value.absent(),
+              }) => NewsCompanion(
+                id: id,
+                title: title,
+                date: date,
+                imageUrl: imageUrl,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String title,
+                required String date,
+                required String imageUrl,
+              }) => NewsCompanion.insert(
+                id: id,
+                title: title,
+                date: date,
+                imageUrl: imageUrl,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$NewsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NewsTable,
+      New,
+      $$NewsTableFilterComposer,
+      $$NewsTableOrderingComposer,
+      $$NewsTableAnnotationComposer,
+      $$NewsTableCreateCompanionBuilder,
+      $$NewsTableUpdateCompanionBuilder,
+      (New, BaseReferences<_$AppDatabase, $NewsTable, New>),
+      New,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8753,4 +9920,5 @@ class $AppDatabaseManager {
       $$ConversationsTableTableManager(_db, _db.conversations);
   $$MessagesTableTableManager get messages =>
       $$MessagesTableTableManager(_db, _db.messages);
+  $$NewsTableTableManager get news => $$NewsTableTableManager(_db, _db.news);
 }

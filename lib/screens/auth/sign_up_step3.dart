@@ -158,7 +158,8 @@ class _SignUpStep3State extends State<SignUpStep3> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: isLoading ? null : _finishSignUp,
+                      key: const ValueKey('finishButton'),
+                    onPressed: isLoading ? null : _finishSignUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -236,17 +237,18 @@ class _SignUpStep3State extends State<SignUpStep3> {
       decoration: BoxDecoration(border: Border.all(color: Colors.grey[200]!), borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
-          _buildFeeRow("1 - 3 Travelers", fee1To3Controller),
-          _buildFeeRow("4 - 6 Travelers", fee4To6Controller),
-          _buildFeeRow("7 - 9 Travelers", fee7To9Controller),
-          _buildFeeRow("10 - 14 Travelers", fee10To14Controller, isLast: true),
+          _buildFeeRow("1 - 3 Travelers", fee1To3Controller, key: const ValueKey('fee1To3Field')),
+          _buildFeeRow("4 - 6 Travelers", fee4To6Controller, key: const ValueKey('fee4To6Field')),
+          _buildFeeRow("7 - 9 Travelers", fee7To9Controller, key: const ValueKey('fee7To9Field')),
+          _buildFeeRow("10 - 14 Travelers", fee10To14Controller, key: const ValueKey('fee10To14Field'), isLast: true),
         ],
       ),
     );
   }
 
-  Widget _buildFeeRow(String label, TextEditingController controller, {bool isLast = false}) {
+  Widget _buildFeeRow(String label, TextEditingController controller, {bool isLast = false, Key? key}) {
     return Container(
+      key: key,
       decoration: BoxDecoration(border: Border(bottom: isLast ? BorderSide.none : BorderSide(color: Colors.grey[200]!))),
       child: Row(
         children: [

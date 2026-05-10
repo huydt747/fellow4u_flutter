@@ -4,6 +4,10 @@ import 'package:http/http.dart' as http;
 import 'dart:io' show Platform;
 
 class ApiService {
+  static http.Client _client = http.Client();
+  static set client(http.Client client) => _client = client;
+  static http.Client get client => _client;
+
   static String get baseUrl {
     if (kIsWeb) {
       return 'http://localhost:8080';
@@ -14,8 +18,9 @@ class ApiService {
     return 'http://localhost:8080';
   }
 
-  static Future<dynamic> post(String path, Map<String, dynamic> body) async {
-    final response = await http.post(
+  static Future<dynamic> post(String path, Map<String, dynamic> body, {http.Client? client}) async {
+    final httpClient = client ?? _client;
+    final response = await httpClient.post(
       Uri.parse('$baseUrl/$path'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
@@ -24,8 +29,9 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  static Future<dynamic> patch(String path, Map<String, dynamic> body) async {
-    final response = await http.patch(
+  static Future<dynamic> patch(String path, Map<String, dynamic> body, {http.Client? client}) async {
+    final httpClient = client ?? _client;
+    final response = await httpClient.patch(
       Uri.parse('$baseUrl/$path'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
@@ -34,8 +40,9 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  static Future<dynamic> get(String path) async {
-    final response = await http.get(
+  static Future<dynamic> get(String path, {http.Client? client}) async {
+    final httpClient = client ?? _client;
+    final response = await httpClient.get(
       Uri.parse('$baseUrl/$path'),
       headers: {'Content-Type': 'application/json'},
     );
@@ -43,11 +50,12 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  static Future<dynamic> uploadFile(String path, List<int> bytes, String fileName) async {
+  static Future<dynamic> uploadFile(String path, List<int> bytes, String fileName, {http.Client? client}) async {
+    final httpClient = client ?? _client;
     final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/$path'));
     request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName));
     
-    final streamedResponse = await request.send();
+    final streamedResponse = await httpClient.send(request);
     final response = await http.Response.fromStream(streamedResponse);
     
     return _handleResponse(response);

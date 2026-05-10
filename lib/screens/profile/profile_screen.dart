@@ -58,9 +58,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: CircularProgressIndicator(key: ValueKey('profileLoading'))));
     if (errorMessage != null)
-      return Scaffold(body: Center(child: Text("Error: $errorMessage")));
+      return Scaffold(body: Center(child: Text("Error: $errorMessage", key: const ValueKey('profileError'))));
     if (userData == null)
       return const Scaffold(body: Center(child: Text("No user data")));
 
@@ -209,6 +209,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Text(
                           fullName,
+                          key: const ValueKey('profileName'),
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -327,6 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     Text(
                       bio,
+                      key: const ValueKey('profileBio'),
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.grey[800],

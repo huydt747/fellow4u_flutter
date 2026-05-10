@@ -119,17 +119,17 @@ class _SignUpStep2State extends State<SignUpStep2> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  _buildTextField("Address", "Address", controller: addressController),
+                  _buildTextField("Address", "Address", controller: addressController, key: const ValueKey('addressField')),
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      Expanded(child: _buildTextField("City", "City", controller: cityController)),
+                      Expanded(child: _buildTextField("City", "City", controller: cityController, key: const ValueKey('cityField'))),
                       const SizedBox(width: 20),
-                      Expanded(child: _buildTextField("Country", "Country", controller: countryController)),
+                      Expanded(child: _buildTextField("Country", "Country", controller: countryController, key: const ValueKey('countryField'))),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _buildPhoneField(),
+                  _buildPhoneField(const ValueKey('phoneField')),
                   const SizedBox(height: 25),
                   _buildUploadBox("Guide License"),
                   const SizedBox(height: 20),
@@ -139,6 +139,7 @@ class _SignUpStep2State extends State<SignUpStep2> {
                     "Languages",
                     "Languages you can use to guide",
                     controller: languagesController,
+                    key: const ValueKey('languagesField'),
                   ),
                   const SizedBox(height: 20),
                   _buildTextField(
@@ -146,6 +147,7 @@ class _SignUpStep2State extends State<SignUpStep2> {
                     "Short introduction about yourself",
                     maxLines: 5,
                     controller: introController,
+                    key: const ValueKey('introField'),
                   ),
                   const SizedBox(height: 20),
                   _buildUploadBox(
@@ -157,7 +159,8 @@ class _SignUpStep2State extends State<SignUpStep2> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: isLoading ? null : _nextStep,
+                      key: const ValueKey('nextStepButton'),
+                    onPressed: isLoading ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -248,8 +251,9 @@ class _SignUpStep2State extends State<SignUpStep2> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {int maxLines = 1, TextEditingController? controller}) {
+  Widget _buildTextField(String label, String hint, {int maxLines = 1, TextEditingController? controller, Key? key}) {
     return Column(
+      key: key,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -271,8 +275,9 @@ class _SignUpStep2State extends State<SignUpStep2> {
     );
   }
 
-  Widget _buildPhoneField() {
+  Widget _buildPhoneField(Key? key) {
     return Column(
+      key: key,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(

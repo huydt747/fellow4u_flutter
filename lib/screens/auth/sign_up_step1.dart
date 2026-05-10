@@ -123,27 +123,28 @@ class _SignUpStep1State extends State<SignUpStep1> {
                 children: [
                   Row(
                     children: [
-                      _buildRadioButton('Traveler'),
+                      _buildRadioButton('Traveler', const ValueKey('roleTraveler')),
                       const SizedBox(width: 40),
-                      _buildRadioButton('Guide'),
+                      _buildRadioButton('Guide', const ValueKey('roleGuide')),
                     ],
                   ),
                   const SizedBox(height: 25),
                   Row(
                     children: [
-                      Expanded(child: _buildTextField("First Name", "Tuan", controller: firstNameController)),
+                      Expanded(child: _buildTextField("First Name", "Tuan", controller: firstNameController, key: const ValueKey('firstNameField'))),
                       const SizedBox(width: 20),
-                      Expanded(child: _buildTextField("Last Name", "Tran", controller: lastNameController)),
+                      Expanded(child: _buildTextField("Last Name", "Tran", controller: lastNameController, key: const ValueKey('lastNameField'))),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _buildTextField("Email", "Type email", controller: emailController),
+                  _buildTextField("Email", "Type email", controller: emailController, key: const ValueKey('emailField')),
                   const SizedBox(height: 20),
                   _buildTextField(
                     "Password",
                     "Type password",
                     obscureText: true,
                     controller: passwordController,
+                    key: const ValueKey('passwordField'),
                   ),
                   const Padding(
                     padding: EdgeInsets.only(top: 5),
@@ -158,6 +159,7 @@ class _SignUpStep1State extends State<SignUpStep1> {
                     "••••••",
                     obscureText: true,
                     controller: confirmPasswordController,
+                    key: const ValueKey('confirmPasswordField'),
                   ),
                   const SizedBox(height: 30),
                   const Center(
@@ -176,6 +178,7 @@ class _SignUpStep1State extends State<SignUpStep1> {
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
+                    key: const ValueKey('signUpButton'),
                     onPressed: isLoading ? null : _signUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -215,9 +218,10 @@ class _SignUpStep1State extends State<SignUpStep1> {
     );
   }
 
-  Widget _buildRadioButton(String role) {
+  Widget _buildRadioButton(String role, Key? key) {
     bool isSelected = selectedRole == role;
     return InkWell(
+      key: key,
       onTap: () => setState(() => selectedRole = role),
       child: Row(
         children: [
@@ -243,8 +247,10 @@ class _SignUpStep1State extends State<SignUpStep1> {
     String hint, {
     bool obscureText = false,
     TextEditingController? controller,
+    Key? key,
   }) {
     return Column(
+      key: key,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(

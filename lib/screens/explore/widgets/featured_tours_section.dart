@@ -66,9 +66,9 @@ class _FeaturedToursSectionState extends State<FeaturedToursSection> {
         ),
         const SizedBox(height: 10),
         if (isLoading)
-          const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(key: ValueKey('toursLoading'))))
         else if (tours.isEmpty)
-          const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No tours found")))
+          const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No tours found", key: ValueKey('noToursFound'))))
         else
           ListView.builder(
             shrinkWrap: true,
@@ -80,6 +80,7 @@ class _FeaturedToursSectionState extends State<FeaturedToursSection> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 20),
                 child: _TourCard(
+                  key: ValueKey('tourCard_${index}'),
                   title: tour['title'] ?? 'Tour',
                   date: tour['date'] ?? 'N/A',
                   duration: tour['duration'] ?? 'N/A',
@@ -107,6 +108,7 @@ class _TourCard extends StatelessWidget {
   final String imageUrl;
 
   const _TourCard({
+    super.key,
     required this.title,
     required this.date,
     required this.duration,
