@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 
 void main() async {
   print('Creating news table and seeding...');
-  
+
   final dbFile = File(p.join(Directory.current.path, 'db.sqlite'));
   final database = NativeDatabase(dbFile);
 
@@ -40,14 +40,17 @@ void main() async {
         'title': 'Visit Korea this Tet Holiday',
         'date': 'Jan 26, 2020',
         'imageUrl': 'img/scene/1.png',
-      }
+      },
     ];
 
     for (final item in news) {
-      await database.runInsert('''
+      await database.runInsert(
+        '''
         INSERT OR REPLACE INTO news (title, date, image_url)
         VALUES (?, ?, ?)
-      ''', [item['title'], item['date'], item['imageUrl']]);
+      ''',
+        [item['title'], item['date'], item['imageUrl']],
+      );
     }
 
     print('News seeded successfully!');
@@ -60,7 +63,10 @@ void main() async {
 
 class _FakeQueryExecutorUser extends QueryExecutorUser {
   @override
-  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
+  Future<void> beforeOpen(
+    QueryExecutor executor,
+    OpeningDetails details,
+  ) async {}
   @override
   int get schemaVersion => 3;
 }

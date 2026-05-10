@@ -25,8 +25,8 @@ Future<Response> onRequest(RequestContext context) async {
     }
 
     // Generate unique filename
-    final extension = p.extension(fileField.name);
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}_${fileField.name}';
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${fileField.name}';
     final filePath = p.join(uploadDir.path, fileName);
 
     // Save file
@@ -38,10 +38,7 @@ Future<Response> onRequest(RequestContext context) async {
     final fileUrl = '/uploads/$fileName';
 
     return Response.json(
-      body: {
-        'message': 'File uploaded successfully',
-        'url': fileUrl,
-      },
+      body: {'message': 'File uploaded successfully', 'url': fileUrl},
     );
   } catch (e) {
     return Response.json(

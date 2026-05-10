@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
@@ -29,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final response = await ApiService.get('api/users');
       final List<dynamic> users = response as List<dynamic>;
-      
+
       if (users.isNotEmpty) {
         setState(() {
           if (widget.userId != null) {
@@ -58,9 +57,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (errorMessage != null) return Scaffold(body: Center(child: Text("Error: $errorMessage")));
-    if (userData == null) return const Scaffold(body: Center(child: Text("No user data")));
+    if (isLoading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (errorMessage != null)
+      return Scaffold(body: Center(child: Text("Error: $errorMessage")));
+    if (userData == null)
+      return const Scaffold(body: Center(child: Text("No user data")));
 
     final fullName = userData!['fullName'] ?? 'No Name';
     final bio = userData!['bio'] ?? 'No introduction provided.';
@@ -99,7 +101,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: ServerImage(
                       url: getFullUrl(coverPhotoUrl),
                       fit: BoxFit.cover,
-                      fallbackUrl: 'https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=1000&auto=format&fit=crop',
+                      fallbackUrl:
+                          'https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=1000&auto=format&fit=crop',
                     ),
                   ),
 
@@ -108,9 +111,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     top: 30,
                     right: 20,
                     child: IconButton(
-                      icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 32),
+                      icon: const Icon(
+                        Icons.settings_outlined,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                       onPressed: () async {
-                        final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileSettingScreen()));
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileSettingScreen(),
+                          ),
+                        );
                         if (result == true) _fetchProfile();
                       },
                     ),
@@ -130,7 +142,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 3),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
                           ),
                           child: ClipOval(
                             child: ServerImage(
@@ -144,17 +162,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           bottom: -10,
                           child: GestureDetector(
                             onTap: () async {
-                              final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfileScreen(userId: userData!['id'])));
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditProfileScreen(
+                                    userId: userData!['id'],
+                                  ),
+                                ),
+                              );
                               if (result == true) _fetchProfile();
                             },
                             child: Container(
-                              height: 38, width: 38,
-                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                              height: 38,
+                              width: 38,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
                               child: Center(
                                 child: Container(
-                                  height: 30, width: 30,
-                                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                                  height: 30,
+                                  width: 30,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
                                 ),
                               ),
                             ),
@@ -171,15 +208,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(fullName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black, letterSpacing: 0.5)),
+                        Text(
+                          fullName,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 18),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 18,
+                            ),
                             const SizedBox(width: 4),
-                            Text(rating.toStringAsFixed(1), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(width: 8),
-                            Text('$reviewCount Reviews', style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+                            Text(
+                              '$reviewCount Reviews',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -188,7 +248,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 80),
-              
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -197,35 +257,111 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Languages', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                        IconButton(onPressed: () async {
-                          final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfileScreen(userId: userData!['id'])));
-                          if (result == true) _fetchProfile();
-                        }, icon: const Icon(Icons.edit_outlined, color: AppColors.primary)),
+                        const Text(
+                          'Languages',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EditProfileScreen(userId: userData!['id']),
+                              ),
+                            );
+                            if (result == true) _fetchProfile();
+                          },
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    if (languages.isEmpty) const Text("No languages added", style: TextStyle(color: Colors.grey))
-                    else Wrap(spacing: 10, runSpacing: 10, children: languages.map((lang) => _buildLanguageChip(lang)).toList()),
+                    if (languages.isEmpty)
+                      const Text(
+                        "No languages added",
+                        style: TextStyle(color: Colors.grey),
+                      )
+                    else
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: languages
+                            .map((lang) => _buildLanguageChip(lang))
+                            .toList(),
+                      ),
                     const SizedBox(height: 25),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Introduction', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                        IconButton(onPressed: () async {
-                          final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfileScreen(userId: userData!['id'])));
-                          if (result == true) _fetchProfile();
-                        }, icon: const Icon(Icons.edit_outlined, color: AppColors.primary)),
+                        const Text(
+                          'Introduction',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EditProfileScreen(userId: userData!['id']),
+                              ),
+                            );
+                            if (result == true) _fetchProfile();
+                          },
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Text(bio, style: TextStyle(fontSize: 15, color: Colors.grey[800], height: 1.5)),
+                    Text(
+                      bio,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[800],
+                        height: 1.5,
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     if (videoUrl != null)
                       Container(
-                        height: 200, width: double.infinity,
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), image: const DecorationImage(image: NetworkImage('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000&auto=format&fit=crop'), fit: BoxFit.cover)),
-                        child: Center(child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.8)), child: const Icon(Icons.play_arrow, color: AppColors.primary, size: 40))),
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          image: const DecorationImage(
+                            image: NetworkImage(
+                              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000&auto=format&fit=crop',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.8),
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow,
+                              color: AppColors.primary,
+                              size: 40,
+                            ),
+                          ),
+                        ),
                       ),
                     const SizedBox(height: 40),
                   ],
@@ -241,8 +377,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildLanguageChip(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[800], fontWeight: FontWeight.w500)),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[800],
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }

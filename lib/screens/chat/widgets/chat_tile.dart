@@ -7,11 +7,15 @@ class ChatTile extends StatelessWidget {
   final String? time;
   final int unreadCount;
   final String? avatarUrl;
+  final int conversationId;
+  final int otherUserId;
 
   const ChatTile({
     super.key,
     required this.name,
     required this.lastMessage,
+    required this.conversationId,
+    required this.otherUserId,
     this.time,
     this.unreadCount = 0,
     this.avatarUrl,
@@ -27,6 +31,8 @@ class ChatTile extends StatelessWidget {
             builder: (context) => ChatDetailScreen(
               name: name,
               avatarUrl: avatarUrl ?? "https://i.pravatar.cc/150?img=1",
+              conversationId: conversationId,
+              otherUserId: otherUserId,
             ),
           ),
         );

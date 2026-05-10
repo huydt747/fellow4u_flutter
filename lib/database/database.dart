@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 
 part 'database.g.dart';
 
@@ -33,7 +32,7 @@ class Users extends Table {
   // Stats
   IntColumn get reviewCount => integer().withDefault(const Constant(0))();
   RealColumn get rating => real().withDefault(const Constant(0.0))();
-  
+
   // Activity/Experience info (each guide has one)
   TextColumn get activityTitle => text().nullable()();
   TextColumn get activityImageUrl => text().nullable()();

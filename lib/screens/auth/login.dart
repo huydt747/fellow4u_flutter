@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/auth_header.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/session_service.dart';
 import 'sign_up_step1.dart';
 import '../main_screen.dart';
 
@@ -37,8 +38,11 @@ class _SignInScreenState extends State<SignInScreen> {
         "password": password,
       });
 
-      // 2. Save session (Placeholder for now)
-      print("Login success: ${response['token']}");
+      // 2. Save session
+      final user = response['user'];
+      if (user != null && user['id'] != null) {
+        SessionService.setCurrentUserId(user['id']);
+      }
       
       // 3. Navigate to Main Screen
       if (mounted) {

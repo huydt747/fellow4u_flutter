@@ -1,4 +1,4 @@
-import 'dart:io' show Platform, File;
+import 'dart:io' show File;
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -16,7 +16,7 @@ class DbService {
       if (kIsWeb) {
         // Placeholder for web database, or use in-memory for now
         // A real web implementation would use drift_web
-        return NativeDatabase.memory(); 
+        return NativeDatabase.memory();
       }
       final dbFolder = await getApplicationDocumentsDirectory();
       final file = File(p.join(dbFolder.path, 'db.sqlite'));
