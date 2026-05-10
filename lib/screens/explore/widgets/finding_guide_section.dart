@@ -145,7 +145,7 @@ class _GuideCard extends StatelessWidget {
               child: ServerImage(
                 url: imageUrl,
                 height: double.infinity,
-                fallbackUrl: 'https://i.pravatar.cc/300?u=$name',
+                fallbackUrl: 'img/avatar/1.png',
               ),
             ),
             // Right Content

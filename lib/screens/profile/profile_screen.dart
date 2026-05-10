@@ -101,8 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: ServerImage(
                       url: getFullUrl(coverPhotoUrl),
                       fit: BoxFit.cover,
-                      fallbackUrl:
-                          'https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=1000&auto=format&fit=crop',
+                      fallbackUrl: 'img/scene/1.png',
                     ),
                   ),
 
@@ -342,9 +341,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000&auto=format&fit=crop',
-                            ),
+                            image: AssetImage('img/scene/2.png'),
                             fit: BoxFit.cover,
                           ),
                         ),

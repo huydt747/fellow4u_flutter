@@ -118,6 +118,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: 10),
                   const Text("Email", style: TextStyle(color: Colors.black)),
                   TextField(
+                    key: const ValueKey('emailField'),
                     controller: emailController,
                     decoration: const InputDecoration(
                       // hintText: "example@gmail.com",
@@ -132,6 +133,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: 25),
                   const Text("Password", style: TextStyle(color: Colors.black)),
                   TextField(
+                    key: const ValueKey('passwordField'),
                     controller: passwordController,
                     obscureText: true,
                     decoration: const InputDecoration(
@@ -156,6 +158,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   const SizedBox(height: 40),
                   ElevatedButton(
+                    key: const ValueKey('signInButton'),
                     onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

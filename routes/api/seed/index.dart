@@ -23,7 +23,7 @@ Future<Response> onRequest(RequestContext context) async {
         'city': 'Danang',
         'country': 'Vietnam',
         'activity_title': '2 Hour Bicycle Tour exploring Hoian',
-        'activity_image_url': 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1000',
+        'activity_image_url': 'img/scene/1.png',
         'avatar_url': 'img/avatar/1.png',
       },
       {
@@ -32,7 +32,7 @@ Future<Response> onRequest(RequestContext context) async {
         'city': 'Hanoi',
         'country': 'Vietnam',
         'activity_title': '1 day at Bana Hill',
-        'activity_image_url': 'https://images.unsplash.com/photo-1559592413-7cea83781ce4?q=80&w=1000',
+        'activity_image_url': 'img/scene/2.png',
         'avatar_url': 'img/avatar/2.png',
       }
     ];

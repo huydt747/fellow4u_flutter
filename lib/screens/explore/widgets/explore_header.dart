@@ -14,7 +14,7 @@ class ExploreHeader extends StatelessWidget {
           width: double.infinity,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: NetworkImage('img/weather.png'),
+              image: AssetImage('img/weather.png'),
               fit: BoxFit.cover,
             ),
           ),

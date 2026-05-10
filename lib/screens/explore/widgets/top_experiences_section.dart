@@ -145,7 +145,7 @@ class _ExperienceCard extends StatelessWidget {
                   height: 280,
                   width: 240,
                   fit: BoxFit.cover,
-                  fallbackUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1000',
+                  fallbackUrl: 'img/scene/3.png',
                 ),
               ),
               // Guide Avatar with thick border

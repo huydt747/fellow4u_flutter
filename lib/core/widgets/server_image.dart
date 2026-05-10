@@ -21,11 +21,17 @@ class ServerImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) {
+      if (fallbackUrl.startsWith('img/')) {
+        return Image.asset(fallbackUrl, fit: fit, width: width, height: height);
+      }
       return Image.network(fallbackUrl, fit: fit, width: width, height: height);
     }
 
     // If it's a standard web URL, use NetworkImage
     if (!url!.contains('/uploads/')) {
+      if (url!.startsWith('img/')) {
+        return Image.asset(url!, fit: fit, width: width, height: height);
+      }
       return Image.network(url!, fit: fit, width: width, height: height);
     }
 
@@ -42,6 +48,9 @@ class ServerImage extends StatelessWidget {
         }
         
         if (snapshot.hasError || snapshot.data == null) {
+          if (fallbackUrl.startsWith('img/')) {
+            return Image.asset(fallbackUrl, fit: fit, width: width, height: height);
+          }
           return Image.network(fallbackUrl, fit: fit, width: width, height: height);
         }
 
@@ -55,6 +64,9 @@ class ServerImage extends StatelessWidget {
             height: height,
           );
         } catch (e) {
+          if (fallbackUrl.startsWith('img/')) {
+            return Image.asset(fallbackUrl, fit: fit, width: width, height: height);
+          }
           return Image.network(fallbackUrl, fit: fit, width: width, height: height);
         }
       },
