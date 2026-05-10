@@ -78,6 +78,7 @@ class Trips extends Table {
   DateTimeColumn get endDate => dateTime().nullable()();
   TextColumn get status => text()(); // current, next, past, wishlist
   TextColumn get imageUrl => text().nullable()();
+  IntColumn get guideId => integer().nullable().references(Users, #id)();
 }
 
 class Guides extends Table {

@@ -129,7 +129,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(4), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1)),
-                    child: ClipOval(child: SizedBox(width: 120, height: 120, child: _ServerImage(url: getFullUrl(avatarUrl), fit: BoxFit.cover, fallbackUrl: 'https://i.pravatar.cc/300'))),
+                    child: ClipOval(child: SizedBox(width: 120, height: 120, child: _ServerImage(url: getFullUrl(avatarUrl), fit: BoxFit.cover, fallbackUrl: 'img/avatar/7.png'))),
                   ),
                   Positioned(bottom: 0, right: 0, child: GestureDetector(onTap: () => _pickAndUploadImage(true), child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle), child: const Icon(Icons.camera_alt, color: Colors.white, size: 18))))),
                 ],

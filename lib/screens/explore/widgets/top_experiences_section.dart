@@ -173,7 +173,7 @@ class _ExperienceCard extends StatelessWidget {
                               width: 80,
                               height: 80,
                               fit: BoxFit.cover,
-                              fallbackUrl: 'https://i.pravatar.cc/300?u=$guideName',
+                              fallbackUrl: 'img/avatar/4.png',
                             ),
                           ),
                         ),

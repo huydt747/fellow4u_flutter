@@ -24,6 +24,16 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  static Future<dynamic> patch(String path, Map<String, dynamic> body) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/$path'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    return _handleResponse(response);
+  }
+
   static Future<dynamic> get(String path) async {
     final response = await http.get(
       Uri.parse('$baseUrl/$path'),

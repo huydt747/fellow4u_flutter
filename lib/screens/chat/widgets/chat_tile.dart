@@ -30,7 +30,7 @@ class ChatTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => ChatDetailScreen(
               name: name,
-              avatarUrl: avatarUrl ?? "https://i.pravatar.cc/150?img=1",
+              avatarUrl: avatarUrl ?? "img/avatar/5.png",
               conversationId: conversationId,
               otherUserId: otherUserId,
             ),

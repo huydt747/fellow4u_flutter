@@ -52,7 +52,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
           MaterialPageRoute(
             builder: (context) => ChatDetailScreen(
               name: user['fullName'] ?? user['username'],
-              avatarUrl: user['avatarUrl'] ?? "https://i.pravatar.cc/150?img=1",
+              avatarUrl: user['avatarUrl'] ?? "img/avatar/6.png",
               conversationId: conversationId,
               otherUserId: user['id'],
             ),

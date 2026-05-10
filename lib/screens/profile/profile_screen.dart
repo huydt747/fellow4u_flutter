@@ -154,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: ServerImage(
                               url: getFullUrl(avatarUrl),
                               fit: BoxFit.cover,
-                              fallbackUrl: 'https://i.pravatar.cc/300',
+                              fallbackUrl: 'img/avatar/8.png',
                             ),
                           ),
                         ),

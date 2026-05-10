@@ -138,7 +138,7 @@ class _GuideProfileCard extends StatelessWidget {
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
-                  fallbackUrl: 'https://i.pravatar.cc/300?u=$name',
+                  fallbackUrl: 'img/avatar/3.png',
                 ),
               ),
               // Stars and reviews overlay

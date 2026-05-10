@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/server_image.dart';
 
 class TripCardAction {
   final String label;
@@ -19,7 +20,7 @@ class TripCard extends StatelessWidget {
   final String time;
   final String person;
   final String imagePath;
-  final String avatarPath;
+  final String? avatarPath;
   final String? status;
   final List<TripCardAction>? actions;
 
@@ -31,7 +32,7 @@ class TripCard extends StatelessWidget {
     required this.time,
     required this.person,
     required this.imagePath,
-    required this.avatarPath,
+    this.avatarPath,
     this.status,
     this.actions,
   });
@@ -60,7 +61,7 @@ class TripCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTripDetails(),
+                _buildTripDetails(context),
                 _buildAvatar(),
               ],
             ),
@@ -78,14 +79,14 @@ class TripCard extends StatelessWidget {
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
           ),
-          child: Image.asset(
-            imagePath,
+          child: ServerImage(
+            url: imagePath,
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,
           ),
         ),
-        if (status != null)
+        if (status != null && status != "current" && status != "next" && status != "past" && status != "wishlist")
           Positioned(
             top: 15,
             left: 15,
@@ -95,17 +96,9 @@ class TripCard extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Row(
-                children: [
-                  if (status == 'Mark Finished') ...[
-                    const Icon(Icons.check, size: 18, color: Colors.black),
-                    const SizedBox(width: 5),
-                  ],
-                  Text(
-                    status!,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                ],
+              child: Text(
+                status!,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -139,7 +132,7 @@ class TripCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTripDetails() {
+  Widget _buildTripDetails(BuildContext context) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +148,7 @@ class TripCard extends StatelessWidget {
           const SizedBox(height: 5),
           _buildDetailRow(Icons.person_outline, person),
           const SizedBox(height: 15),
-          _buildActions(),
+          _buildActions(context),
         ],
       ),
     );
@@ -171,36 +164,31 @@ class TripCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActions() {
-    if (actions != null && actions!.isEmpty) {
+  Widget _buildActions(BuildContext context) {
+    if (actions == null || actions!.isEmpty) {
       return const SizedBox.shrink();
     }
-
-    final List<TripCardAction> currentActions = actions ??
-        [
-          const TripCardAction(label: 'Detail', icon: Icons.info_outline),
-        ];
 
     return Padding(
       padding: const EdgeInsets.only(top: 15),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: currentActions
-            .map((action) => _buildActionButton(action))
+        children: actions!
+            .map((action) => _buildActionButton(action, context))
             .toList(),
       ),
     );
   }
 
-  Widget _buildActionButton(TripCardAction action) {
+  Widget _buildActionButton(TripCardAction action, BuildContext context) {
     return OutlinedButton.icon(
       onPressed: action.onPressed ?? () {},
       icon: Icon(action.icon, size: 18),
       label: Text(action.label),
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF00CEA6),
-        side: const BorderSide(color: Color(0xFF00CEA6)),
+        foregroundColor: Theme.of(context).primaryColor,
+        side: BorderSide(color: Theme.of(context).primaryColor),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 12),
       ),
@@ -215,9 +203,9 @@ class TripCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFF00CEA6), width: 2),
       ),
       child: ClipOval(
-        child: Image.asset(
-          avatarPath,
-          width: 60, // Adjusted size to fit better with multiple buttons
+        child: ServerImage(
+          url: avatarPath,
+          width: 60,
           height: 60,
           fit: BoxFit.cover,
         ),

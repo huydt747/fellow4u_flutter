@@ -13,7 +13,7 @@ class ServerImage extends StatelessWidget {
     super.key,
     required this.url,
     this.fit = BoxFit.cover,
-    this.fallbackUrl = 'https://i.pravatar.cc/300',
+    this.fallbackUrl = 'img/avatar/1.png',
     this.width,
     this.height,
   });
