@@ -27,17 +27,23 @@ class ServerImage extends StatelessWidget {
       return Image.network(fallbackUrl, fit: fit, width: width, height: height);
     }
 
+    String finalUrl = url!;
+    if (finalUrl.startsWith('/')) {
+      finalUrl = '${ApiService.baseUrl}$finalUrl';
+    }
+
     // If it's a standard web URL, use NetworkImage
-    if (!url!.contains('/uploads/')) {
-      if (url!.startsWith('img/')) {
-        return Image.asset(url!, fit: fit, width: width, height: height);
+    if (!finalUrl.contains('/uploads/')) {
+      if (finalUrl.startsWith('img/')) {
+        return Image.asset(finalUrl, fit: fit, width: width, height: height);
       }
-      return Image.network(url!, fit: fit, width: width, height: height);
+      return Image.network(finalUrl, fit: fit, width: width, height: height);
     }
 
     // If it's from our server, fetch the Base64 JSON
+    final apiPath = finalUrl.replaceFirst('${ApiService.baseUrl}/', '');
     return FutureBuilder<dynamic>(
-      future: ApiService.get(url!.replaceFirst(ApiService.baseUrl + '/', '')),
+      future: ApiService.get(apiPath),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(

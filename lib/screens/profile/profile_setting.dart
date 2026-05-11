@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/services/api_service.dart';
+import '../../core/services/session_service.dart';
+import '../../core/widgets/server_image.dart';
 import 'edit_profile.dart';
 
 class ProfileSettingScreen extends StatefulWidget {
@@ -11,6 +14,35 @@ class ProfileSettingScreen extends StatefulWidget {
 
 class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
   bool _notificationsEnabled = true;
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUser();
+  }
+
+  Future<void> _fetchUser() async {
+    try {
+      final response = await ApiService.get('api/users');
+      final List<dynamic> users = response as List<dynamic>;
+      final currentUserId = SessionService.currentUserId;
+      
+      if (mounted) {
+        setState(() {
+          _userData = users.firstWhere(
+            (u) => u['id'] == currentUserId,
+            orElse: () => users.first,
+          );
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching user for settings: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +65,9 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -47,42 +81,56 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                 ),
                 child: Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 35,
-                      // backgroundImage: AssetImage('assets/profile.png'),
+                      backgroundColor: Colors.white,
+                      child: ClipOval(
+                        child: ServerImage(
+                          url: _userData?['avatarUrl'],
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                          fallbackUrl: 'img/avatar/7.png',
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Ok',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _userData?['fullName'] ?? _userData?['username'] ?? 'User',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        Text(
-                          'Guide',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 14,
+                          Text(
+                            _userData?['role'] ?? 'Traveler',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 10),
                     GestureDetector(
                       onTap: () async {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const EditProfileScreen(),
+                            builder: (context) => EditProfileScreen(
+                              userId: _userData?['id'],
+                            ),
                           ),
                         );
                         if (result == true && mounted) {
-                          Navigator.of(context).pop(true);
+                          _fetchUser(); // Refresh current screen instead of popping
                         }
                       },
                       child: Container(
@@ -95,7 +143,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
-                          'EDIT PROFILE',
+                          'EDIT',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,

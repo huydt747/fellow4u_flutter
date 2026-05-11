@@ -107,7 +107,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, true),
         ),
         title: Row(
           children: [

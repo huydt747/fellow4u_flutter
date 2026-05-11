@@ -57,18 +57,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading)
+    if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator(key: ValueKey('profileLoading'))));
-    if (errorMessage != null)
+    }
+    if (errorMessage != null) {
       return Scaffold(body: Center(child: Text("Error: $errorMessage", key: const ValueKey('profileError'))));
-    if (userData == null)
+    }
+    if (userData == null) {
       return const Scaffold(body: Center(child: Text("No user data")));
+    }
 
     final fullName = userData!['fullName'] ?? 'No Name';
     final bio = userData!['bio'] ?? 'No introduction provided.';
     final rating = userData!['rating'] ?? 0.0;
     final reviewCount = userData!['reviewCount'] ?? 0;
-    final languages = List<String>.from(userData!['languages'] ?? []);
+    final languages = (userData!['languages'] as List?)?.map((e) => e.toString()).toList() ?? [];
     final avatarUrl = userData!['avatarUrl'] as String?;
     final coverPhotoUrl = userData!['coverPhotoUrl'] as String?;
     final videoUrl = userData!['videoIntroUrl'] as String?;
@@ -76,12 +79,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const double coverHeight = 200;
     const double profileSize = 130;
     const double profileTop = coverHeight - (profileSize / 2) + 20;
-
-    String getFullUrl(String? path) {
-      if (path == null) return '';
-      if (path.startsWith('/')) return '${ApiService.baseUrl}$path';
-      return path;
-    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -95,11 +92,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 clipBehavior: Clip.none,
                 children: [
                   // 1. Cover Photo
-                  Container(
+                  SizedBox(
                     height: coverHeight,
                     width: double.infinity,
                     child: ServerImage(
-                      url: getFullUrl(coverPhotoUrl),
+                      url: coverPhotoUrl,
                       fit: BoxFit.cover,
                       fallbackUrl: 'img/scene/1.png',
                     ),
@@ -151,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: ClipOval(
                             child: ServerImage(
-                              url: getFullUrl(avatarUrl),
+                              url: avatarUrl,
                               fit: BoxFit.cover,
                               fallbackUrl: 'img/avatar/8.png',
                             ),

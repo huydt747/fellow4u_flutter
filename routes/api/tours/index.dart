@@ -9,9 +9,18 @@ Future<Response> onRequest(RequestContext context) async {
 
   final db = context.read<AppDatabase>();
 
-  // Use customSelect to bypass out-of-sync generated code
+  // Use customSelect to bypass out-of-sync generated code and perform join
   try {
-    final rows = await db.customSelect('SELECT * FROM tours').get();
+    final rows = await db.customSelect('''
+      SELECT 
+        t.*, 
+        u.full_name as guide_name, 
+        u.avatar_url as guide_avatar,
+        u.city as guide_city,
+        u.country as guide_country
+      FROM tours t
+      LEFT JOIN users u ON t.guide_id = u.id
+    ''').get();
 
     final tourList = rows
         .map(
@@ -25,6 +34,13 @@ Future<Response> onRequest(RequestContext context) async {
             'date': row.readNullable<String>('date'),
             'duration': row.readNullable<String>('duration'),
             'likes': row.read<int>('likes'),
+            'guideId': row.read<int>('guide_id'),
+            'guide': {
+              'fullName': row.readNullable<String>('guide_name'),
+              'avatarUrl': row.readNullable<String>('guide_avatar'),
+              'city': row.readNullable<String>('guide_city'),
+              'country': row.readNullable<String>('guide_country'),
+            }
           },
         )
         .toList();

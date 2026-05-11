@@ -32,10 +32,6 @@ class Users extends Table {
   // Stats
   IntColumn get reviewCount => integer().withDefault(const Constant(0))();
   RealColumn get rating => real().withDefault(const Constant(0.0))();
-
-  // Activity/Experience info (each guide has one)
-  TextColumn get activityTitle => text().nullable()();
-  TextColumn get activityImageUrl => text().nullable()();
 }
 
 class Languages extends Table {
@@ -81,15 +77,6 @@ class Trips extends Table {
   IntColumn get guideId => integer().nullable().references(Users, #id)();
 }
 
-class Guides extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text()();
-  TextColumn get avatarUrl => text().nullable()();
-  TextColumn get location => text()();
-  RealColumn get rating => real().withDefault(const Constant(0.0))();
-  IntColumn get reviewCount => integer().withDefault(const Constant(0))();
-}
-
 class Tours extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
@@ -100,15 +87,6 @@ class Tours extends Table {
   TextColumn get date => text().nullable()();
   TextColumn get duration => text().nullable()();
   IntColumn get likes => integer().withDefault(const Constant(0))();
-}
-
-class Experiences extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get title => text()();
-  TextColumn get location => text()();
-  RealColumn get price => real()();
-  RealColumn get rating => real().withDefault(const Constant(0.0))();
-  TextColumn get imageUrl => text().nullable()();
   IntColumn get guideId => integer().references(Users, #id)();
 }
 
@@ -145,9 +123,7 @@ class News extends Table {
     Fees,
     Availability,
     Trips,
-    Guides,
     Tours,
-    Experiences,
     Conversations,
     Messages,
     News,
@@ -157,5 +133,29 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 4) {
+          // Simplest strategy for dev: drop and recreate if version < 4
+          // Or we can manually handle:
+          // 1. Drop Guides and Experiences
+          // 2. Add guideId to Tours
+          // 3. Update Users table
+          
+          // For now, let's use a safe-ish destructive migration for dev
+          for (final table in allTables) {
+            await m.drop(table);
+          }
+          await m.createAll();
+        }
+      },
+    );
+  }
 }

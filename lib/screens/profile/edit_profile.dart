@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
+import '../../core/widgets/server_image.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final int? userId;
@@ -15,6 +15,10 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _langController = TextEditingController();
+  
+  List<String> _languages = [];
   
   String? avatarUrl;
   String? coverPhotoUrl;
@@ -39,6 +43,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         setState(() {
           _firstNameController.text = userData['firstName'] ?? '';
           _lastNameController.text = userData['lastName'] ?? '';
+          _bioController.text = userData['bio'] ?? '';
+          _languages = (userData['languages'] as List?)?.map((e) => e.toString()).toList() ?? [];
           avatarUrl = userData['avatarUrl'];
           coverPhotoUrl = userData['coverPhotoUrl'];
           isLoading = false;
@@ -58,8 +64,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final bytes = await image.readAsBytes();
       final response = await ApiService.uploadFile('api/upload', bytes, image.name);
       setState(() {
-        if (isAvatar) avatarUrl = response['url'];
-        else coverPhotoUrl = response['url'];
+        if (isAvatar) {
+          avatarUrl = response['url'];
+        } else {
+          coverPhotoUrl = response['url'];
+        }
         isSaving = false;
       });
     } catch (e) {
@@ -75,6 +84,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'userId': widget.userId ?? 1,
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
+        'introduction': _bioController.text,
+        'languages': _languages.join(', '),
         'avatarUrl': avatarUrl,
         'coverPhotoUrl': coverPhotoUrl,
       });
@@ -89,7 +100,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _bioController.dispose();
+    _langController.dispose();
     super.dispose();
+  }
+
+  void _showAddLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Language'),
+        content: TextField(
+          controller: _langController,
+          decoration: const InputDecoration(hintText: 'e.g. Spanish, German'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () {
+              if (_langController.text.isNotEmpty) {
+                setState(() {
+                  _languages.add(_langController.text.trim());
+                  _langController.clear();
+                });
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('ADD'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -117,7 +159,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   Container(
                     height: 150, width: double.infinity, color: Colors.grey[200],
-                    child: _ServerImage(url: getFullUrl(coverPhotoUrl), fit: BoxFit.cover, fallbackUrl: ''),
+                    child: ServerImage(
+                      url: coverPhotoUrl,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   Positioned(bottom: 10, right: 10, child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle), child: const Icon(Icons.edit, color: Colors.white, size: 16))),
                 ],
@@ -129,47 +174,86 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(4), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1)),
-                    child: ClipOval(child: SizedBox(width: 120, height: 120, child: _ServerImage(url: getFullUrl(avatarUrl), fit: BoxFit.cover, fallbackUrl: 'img/avatar/7.png'))),
+                    child: ClipOval(
+                      child: ServerImage(
+                        url: avatarUrl,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        fallbackUrl: 'img/avatar/7.png',
+                      ),
+                    ),
                   ),
                   Positioned(bottom: 0, right: 0, child: GestureDetector(onTap: () => _pickAndUploadImage(true), child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle), child: const Icon(Icons.camera_alt, color: Colors.white, size: 18))))),
                 ],
               ),
             ),
-            Padding(padding: const EdgeInsets.all(24), child: Column(children: [const SizedBox(height: 20), Row(children: [Expanded(child: _buildInputField(label: 'First Name', controller: _firstNameController)), const SizedBox(width: 24), Expanded(child: _buildInputField(label: 'Last Name', controller: _lastNameController))])])),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(child: _buildInputField(label: 'First Name', controller: _firstNameController)),
+                      const SizedBox(width: 24),
+                      Expanded(child: _buildInputField(label: 'Last Name', controller: _lastNameController)),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  _buildInputField(
+                    label: 'Introduction',
+                    controller: _bioController,
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Languages',
+                    style: TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ..._languages.map((lang) => Chip(
+                            label: Text(lang),
+                            onDeleted: () => setState(() => _languages.remove(lang)),
+                            deleteIconColor: Colors.red,
+                            backgroundColor: Colors.grey[100],
+                          )),
+                      ActionChip(
+                        label: const Icon(Icons.add, size: 20),
+                        onPressed: _showAddLanguageDialog,
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  String getFullUrl(String? path) {
-    if (path == null) return '';
-    if (path.startsWith('/')) return '${ApiService.baseUrl}$path';
-    return path;
-  }
-
-  Widget _buildInputField({required String label, required TextEditingController controller}) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w500)), TextField(controller: controller, decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 8), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary))))]);
-  }
-}
-
-class _ServerImage extends StatelessWidget {
-  final String url; final BoxFit fit; final String fallbackUrl;
-  const _ServerImage({required this.url, required this.fit, required this.fallbackUrl});
-  @override
-  Widget build(BuildContext context) {
-    if (url.isEmpty) return fallbackUrl.isEmpty ? const Icon(Icons.add_a_photo, size: 40, color: Colors.grey) : Image.network(fallbackUrl, fit: fit);
-    if (!url.contains('/uploads/')) return Image.network(url, fit: fit);
-    return FutureBuilder<dynamic>(
-      future: ApiService.get(url.replaceFirst(ApiService.baseUrl + '/', '')),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError || snapshot.data == null) return const Icon(Icons.error);
-        try {
-          final data = snapshot.data as Map<String, dynamic>;
-          return Image.memory(base64Decode(data['data'] as String), fit: fit);
-        } catch (e) { return const Icon(Icons.error); }
-      },
+  Widget _buildInputField({required String label, required TextEditingController controller, int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w500)),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))),
+            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+          ),
+        ),
+      ],
     );
   }
 }

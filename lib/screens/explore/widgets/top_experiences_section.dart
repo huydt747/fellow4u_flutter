@@ -22,16 +22,13 @@ class _TopExperiencesSectionState extends State<TopExperiencesSection> {
 
   Future<void> _fetchActivities() async {
     try {
-      final response = await ApiService.get('api/users?role=Guide');
+      final response = await ApiService.get('api/tours');
       setState(() {
-        // Only show guides who have an activity defined
-        activities = (response as List<dynamic>).where((u) => 
-          u['activityTitle'] != null && u['activityImageUrl'] != null
-        ).toList();
+        activities = (response as List<dynamic>).toList();
         isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error fetching activities: $e');
+      debugPrint('Error fetching tours: $e');
       setState(() => isLoading = false);
     }
   }
@@ -82,16 +79,18 @@ class _TopExperiencesSectionState extends State<TopExperiencesSection> {
               itemCount: activities.length,
               itemBuilder: (context, index) {
                 final activity = activities[index];
-                final title = activity['activityTitle'] ?? 'Experience';
-                final location = "${activity['city'] ?? 'Danang'}, ${activity['country'] ?? 'Vietnam'}";
-                final guideName = activity['fullName'] ?? activity['firstName'] ?? 'Guide';
+                final guide = activity['guide'];
                 
-                final imageUrl = activity['activityImageUrl'];
+                final title = activity['title'] ?? 'Experience';
+                final location = activity['location'] ?? 'Vietnam';
+                final guideName = guide != null ? (guide['fullName'] ?? 'Guide') : 'Guide';
+                
+                final imageUrl = activity['imageUrl'];
                 final fullImageUrl = imageUrl != null && imageUrl.startsWith('/')
                     ? '${ApiService.baseUrl}$imageUrl'
                     : imageUrl;
 
-                final guideImageUrl = activity['avatarUrl'];
+                final guideImageUrl = guide != null ? guide['avatarUrl'] : null;
                 final fullGuideImageUrl = guideImageUrl != null && guideImageUrl.startsWith('/')
                     ? '${ApiService.baseUrl}$guideImageUrl'
                     : guideImageUrl;

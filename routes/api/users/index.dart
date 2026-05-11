@@ -47,10 +47,10 @@ Future<Response> onRequest(RequestContext context) async {
       'phone': row.readNullable<String>('phone'),
       'bio': row.readNullable<String>('bio'),
       'avatarUrl': row.readNullable<String>('avatar_url'),
+      'coverPhotoUrl': row.readNullable<String>('cover_photo_url'),
+      'videoIntroUrl': row.readNullable<String>('video_intro_url'),
       'rating': row.read<double>('rating'),
       'reviewCount': row.read<int>('review_count'),
-      'activityTitle': row.readNullable<String>('activity_title'),
-      'activityImageUrl': row.readNullable<String>('activity_image_url'),
       'languages': langDetails,
     };
   }));

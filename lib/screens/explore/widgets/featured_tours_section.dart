@@ -80,7 +80,7 @@ class _FeaturedToursSectionState extends State<FeaturedToursSection> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 20),
                 child: _TourCard(
-                  key: ValueKey('tourCard_${index}'),
+                  key: ValueKey('tourCard_$index'),
                   title: tour['title'] ?? 'Tour',
                   date: tour['date'] ?? 'N/A',
                   duration: tour['duration'] ?? 'N/A',

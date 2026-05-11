@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/chat_service.dart';
 import '../../core/services/session_service.dart';
+import '../../core/widgets/server_image.dart';
 import 'chat_detail_screen.dart';
 
 class UserSearchScreen extends StatefulWidget {
@@ -57,7 +58,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
               otherUserId: user['id'],
             ),
           ),
-        ).then((_) => Navigator.pop(context, true));
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -108,10 +109,16 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                     final user = filteredUsers[index];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: user['avatarUrl'] != null && user['avatarUrl'].startsWith('http')
-                            ? NetworkImage(user['avatarUrl'])
-                            : null,
-                        child: user['avatarUrl'] == null ? const Icon(Icons.person) : null,
+                        backgroundColor: Colors.transparent,
+                        child: ClipOval(
+                          child: ServerImage(
+                            url: user['avatarUrl'],
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            fallbackUrl: 'img/avatar/6.png',
+                          ),
+                        ),
                       ),
                       title: Text(user['fullName'] ?? user['username']),
                       subtitle: Text(user['role'] ?? ""),

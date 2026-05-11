@@ -7,25 +7,27 @@ class ChatTile extends StatelessWidget {
   final String? time;
   final int unreadCount;
   final String? avatarUrl;
-  final int conversationId;
-  final int otherUserId;
-
-  const ChatTile({
-    super.key,
-    required this.name,
-    required this.lastMessage,
-    required this.conversationId,
-    required this.otherUserId,
-    this.time,
-    this.unreadCount = 0,
-    this.avatarUrl,
-  });
+    final int conversationId;
+    final int otherUserId;
+    final VoidCallback? onReturn;
+  
+    const ChatTile({
+      super.key,
+      required this.name,
+      required this.lastMessage,
+      required this.conversationId,
+      required this.otherUserId,
+      this.time,
+      this.unreadCount = 0,
+      this.avatarUrl,
+      this.onReturn,
+    });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ChatDetailScreen(
@@ -36,6 +38,7 @@ class ChatTile extends StatelessWidget {
             ),
           ),
         );
+        if (onReturn != null) onReturn!();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

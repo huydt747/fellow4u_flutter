@@ -97,6 +97,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 avatarUrl: otherUser['avatarUrl'],
                                 conversationId: conv['id'],
                                 otherUserId: otherUser['id'],
+                                onReturn: _fetchConversations,
                               );
                             },
                           ),
