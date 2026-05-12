@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/widgets/auth_header.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/session_service.dart';
+import '../../core/utils/error_handler.dart';
 import 'sign_up_step1.dart';
 import '../main_screen.dart';
 
@@ -53,9 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+        ErrorHandler.showError(context, e);
       }
     } finally {
       if (mounted) {

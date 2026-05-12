@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_application_1/database/database.dart';
 
 Future<Response> onRequest(RequestContext context) async {
-  if (context.request.method != HttpMethod.post) {
+  if (context.request.method != HttpMethod.patch) {
     return Response(statusCode: HttpStatus.methodNotAllowed);
   }
 

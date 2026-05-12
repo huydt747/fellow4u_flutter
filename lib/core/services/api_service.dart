@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, SocketException, HttpException;
+import 'dart:async' show TimeoutException;
+import '../exceptions/api_exception.dart';
 
 class ApiService {
   static http.Client _client = http.Client();
@@ -18,47 +20,76 @@ class ApiService {
     return 'http://localhost:8080';
   }
 
-  static Future<dynamic> post(String path, Map<String, dynamic> body, {http.Client? client}) async {
-    final httpClient = client ?? _client;
-    final response = await httpClient.post(
-      Uri.parse('$baseUrl/$path'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+  static Future<dynamic> _safeRequest(Future<http.Response> Function() request, {Duration timeout = const Duration(seconds: 10)}) async {
+    try {
+      final response = await request().timeout(timeout);
+      return _handleResponse(response);
+    } on SocketException {
+      throw NoConnectionException('Cannot reach server. Please check your internet connection.');
+    } on TimeoutException {
+      throw NoConnectionException('Request timed out. The server might be offline.');
+    } on HttpException {
+      throw NoConnectionException('HTTP error occurred. Please try again.');
+    } on http.ClientException catch (e) {
+      throw NoConnectionException('Network error: ${e.message}');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
 
-    return _handleResponse(response);
+  static Future<dynamic> post(String path, Map<String, dynamic> body, {http.Client? client}) async {
+    return _safeRequest(() {
+      final httpClient = client ?? _client;
+      return httpClient.post(
+        Uri.parse('$baseUrl/$path'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+    });
   }
 
   static Future<dynamic> patch(String path, Map<String, dynamic> body, {http.Client? client}) async {
-    final httpClient = client ?? _client;
-    final response = await httpClient.patch(
-      Uri.parse('$baseUrl/$path'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    return _handleResponse(response);
+    return _safeRequest(() {
+      final httpClient = client ?? _client;
+      return httpClient.patch(
+        Uri.parse('$baseUrl/$path'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+    });
   }
 
   static Future<dynamic> get(String path, {http.Client? client}) async {
-    final httpClient = client ?? _client;
-    final response = await httpClient.get(
-      Uri.parse('$baseUrl/$path'),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    return _handleResponse(response);
+    return _safeRequest(() {
+      final httpClient = client ?? _client;
+      return httpClient.get(
+        Uri.parse('$baseUrl/$path'),
+        headers: {'Content-Type': 'application/json'},
+      );
+    });
   }
 
   static Future<dynamic> uploadFile(String path, List<int> bytes, String fileName, {http.Client? client}) async {
-    final httpClient = client ?? _client;
-    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/$path'));
-    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName));
-    
-    final streamedResponse = await httpClient.send(request);
-    final response = await http.Response.fromStream(streamedResponse);
-    
-    return _handleResponse(response);
+    try {
+      final httpClient = client ?? _client;
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/$path'));
+      request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName));
+      
+      final streamedResponse = await httpClient.send(request).timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      return _handleResponse(response);
+    } on SocketException {
+      throw NoConnectionException('Cannot reach server. Please check your internet connection.');
+    } on TimeoutException {
+      throw NoConnectionException('Upload timed out. The server might be offline.');
+    } on http.ClientException catch (e) {
+      throw NoConnectionException('Network error: ${e.message}');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(e.toString().replaceAll('Exception: ', ''));
+    }
   }
 
   static dynamic _handleResponse(http.Response response) {
@@ -74,10 +105,16 @@ class ApiService {
           errorMessage = response.body;
         }
       } catch (_) {
-        // If it's not JSON, use the raw body or a status message
         errorMessage = response.body.isNotEmpty ? response.body : 'Error: ${response.statusCode}';
       }
-      throw Exception(errorMessage);
+
+      if (response.statusCode == 401) {
+        throw UnauthorizedException(errorMessage);
+      } else if (response.statusCode >= 500) {
+        throw ServerException(errorMessage);
+      } else {
+        throw ApiException(errorMessage, statusCode: response.statusCode);
+      }
     }
   }
 }

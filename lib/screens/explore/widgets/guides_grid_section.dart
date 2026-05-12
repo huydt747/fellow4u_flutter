@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/server_image.dart';
 
 class GuidesGridSection extends StatefulWidget {
@@ -28,7 +29,7 @@ class _GuidesGridSectionState extends State<GuidesGridSection> {
         isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error fetching guides: $e');
+      if (mounted) ErrorHandler.showError(context, e);
       setState(() => isLoading = false);
     }
   }

@@ -148,7 +148,7 @@ class AppDatabase extends _$AppDatabase {
           // 1. Drop Guides and Experiences
           // 2. Add guideId to Tours
           // 3. Update Users table
-          
+
           // For now, let's use a safe-ish destructive migration for dev
           for (final table in allTables) {
             await m.drop(table);

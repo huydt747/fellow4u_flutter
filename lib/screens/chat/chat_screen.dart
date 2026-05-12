@@ -4,6 +4,7 @@ import '../../core/services/chat_service.dart';
 import '../../core/services/session_service.dart';
 import 'widgets/chat_tile.dart';
 import 'user_search_screen.dart';
+import '../../core/utils/error_handler.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -38,7 +39,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     } catch (e) {
-      print("Error fetching conversations: $e");
+      if (mounted) ErrorHandler.showError(context, e);
       if (mounted) {
         setState(() => _isLoading = false);
       }

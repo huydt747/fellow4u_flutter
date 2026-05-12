@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
+import '../../core/utils/error_handler.dart';
 import '../../core/widgets/server_image.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -51,7 +52,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ErrorHandler.showError(context, e);
       setState(() => isLoading = false);
     }
   }
@@ -72,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         isSaving = false;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      if (mounted) ErrorHandler.showError(context, e);
       setState(() => isSaving = false);
     }
   }
@@ -80,7 +81,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     setState(() => isSaving = true);
     try {
-      await ApiService.post('auth/update', {
+      await ApiService.patch('auth/update', {
         'userId': widget.userId ?? 1,
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
@@ -91,7 +92,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       });
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      if (mounted) ErrorHandler.showError(context, e);
       setState(() => isSaving = false);
     }
   }

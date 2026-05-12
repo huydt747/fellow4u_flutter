@@ -4,6 +4,7 @@ import '../../core/services/chat_service.dart';
 import '../../core/services/session_service.dart';
 import '../../core/widgets/server_image.dart';
 import 'chat_detail_screen.dart';
+import '../../core/utils/error_handler.dart';
 
 class UserSearchScreen extends StatefulWidget {
   const UserSearchScreen({super.key});
@@ -33,7 +34,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         });
       }
     } catch (e) {
-      print("Error fetching users: $e");
+      if (mounted) ErrorHandler.showError(context, e);
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -61,11 +62,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to start chat: $e")),
-        );
-      }
+      if (mounted) ErrorHandler.showError(context, e);
     }
   }
 

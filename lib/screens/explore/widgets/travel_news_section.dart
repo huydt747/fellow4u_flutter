@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/utils/error_handler.dart';
 
 class TravelNewsSection extends StatefulWidget {
   const TravelNewsSection({super.key});
@@ -27,7 +28,7 @@ class _TravelNewsSectionState extends State<TravelNewsSection> {
         isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error fetching news: $e');
+      if (mounted) ErrorHandler.showError(context, e);
       setState(() => isLoading = false);
     }
   }

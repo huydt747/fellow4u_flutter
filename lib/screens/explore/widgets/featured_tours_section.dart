@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/utils/error_handler.dart';
 
 class FeaturedToursSection extends StatefulWidget {
   const FeaturedToursSection({super.key});
@@ -27,7 +28,7 @@ class _FeaturedToursSectionState extends State<FeaturedToursSection> {
         isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error fetching tours: $e');
+      if (mounted) ErrorHandler.showError(context, e);
       setState(() => isLoading = false);
     }
   }

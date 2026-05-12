@@ -4,6 +4,7 @@ import '../../../core/services/trip_service.dart';
 import '../../../core/services/session_service.dart';
 import '../../../core/services/chat_service.dart';
 import 'trip_card.dart';
+import '../../../core/utils/error_handler.dart';
 
 class TripListBase extends StatefulWidget {
   final String tripType;
@@ -43,7 +44,7 @@ class _TripListBaseState extends State<TripListBase> {
         });
       }
     } catch (e) {
-      print("Error fetching trips: $e");
+      if (mounted) ErrorHandler.showError(context, e);
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -55,11 +56,7 @@ class _TripListBaseState extends State<TripListBase> {
       await TripService.updateTripStatus(tripId, newStatus);
       _fetchTrips(); // Refresh the list
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Failed to update status: $e")));
-      }
+      if (mounted) ErrorHandler.showError(context, e);
     }
   }
 
@@ -86,11 +83,7 @@ class _TripListBaseState extends State<TripListBase> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Failed to open chat: $e")));
-      }
+      if (mounted) ErrorHandler.showError(context, e);
     }
   }
 

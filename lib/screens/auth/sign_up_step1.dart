@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/auth_header.dart';
 import '../../core/services/api_service.dart';
+import '../../core/utils/error_handler.dart';
 import 'sign_up_step2.dart';
 
 class SignUpStep1 extends StatefulWidget {
@@ -68,9 +69,7 @@ class _SignUpStep1State extends State<SignUpStep1> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Sign up failed: $e")),
-        );
+        ErrorHandler.showError(context, e);
       }
     } finally {
       if (mounted) {

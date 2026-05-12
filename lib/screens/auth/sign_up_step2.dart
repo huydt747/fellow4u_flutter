@@ -25,7 +25,7 @@ class _SignUpStep2State extends State<SignUpStep2> {
     setState(() => isLoading = true);
 
     try {
-      await ApiService.post("auth/update", {
+      await ApiService.patch("auth/update", {
         "userId": widget.userId,
         "address": addressController.text.trim(),
         "city": cityController.text.trim(),

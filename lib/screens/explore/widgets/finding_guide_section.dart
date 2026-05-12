@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/server_image.dart';
 
 class FindingGuideSection extends StatefulWidget {
@@ -22,13 +23,13 @@ class _FindingGuideSectionState extends State<FindingGuideSection> {
 
   Future<void> _fetchGuides() async {
     try {
-      final response = await ApiService.get('api/users?role=Traveler');
+      final response = await ApiService.get('api/users?role=Guide');
       setState(() {
         guides = response as List<dynamic>;
         isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error fetching guides: $e');
+      if (mounted) ErrorHandler.showError(context, e);
       setState(() => isLoading = false);
     }
   }
@@ -69,7 +70,7 @@ class _FindingGuideSectionState extends State<FindingGuideSection> {
           if (isLoading)
             const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
           else if (guides.isEmpty)
-            const Center(child: Text("No travelers found"))
+            const Center(child: Text("No guides found"))
           else
             ListView.separated(
               shrinkWrap: true,
@@ -80,7 +81,10 @@ class _FindingGuideSectionState extends State<FindingGuideSection> {
                 final guide = guides[index];
                 final firstName = guide['firstName'] ?? '';
                 final lastName = guide['lastName'] ?? '';
-                final fullName = '$firstName $lastName';
+                var fullName = '$firstName $lastName'.trim();
+                if (fullName.isEmpty) {
+                  fullName = guide['fullName'] ?? 'Anonymous';
+                }
                 final country = guide['country'] ?? 'Unknown';
                 final city = guide['city'] ?? 'Location';
                 final avatarUrl = guide['avatarUrl'];

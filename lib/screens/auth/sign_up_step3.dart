@@ -46,7 +46,7 @@ class _SignUpStep3State extends State<SignUpStep3> {
       ];
 
       // 3. Call API
-      await ApiService.post("auth/update", {
+      await ApiService.patch("auth/update", {
         "userId": widget.userId,
         "fees": fees,
         "availability": availability,
